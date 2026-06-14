@@ -1,0 +1,1187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Mold Investment Calculator</title>
+<style>
+  :root {
+    --bg: #faf6f1;
+    --card: #ffffff;
+    --border: #ecdfd2;
+    --text: #332a22;
+    --text-secondary: #8a7a6a;
+    --accent: #f4791e;
+    --accent-light: #fde8d6;
+    --danger: #c0392b;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .container {
+    max-width: 480px;
+    margin: 0 auto;
+    padding: 1.25rem 1rem 3rem;
+    min-height: 100vh;
+  }
+
+  header {
+    text-align: center;
+    margin-bottom: 1.5rem;
+  }
+
+  header h1 {
+    font-size: 20px;
+    font-weight: 500;
+    margin: 0 0 4px;
+  }
+
+  header p {
+    font-size: 13px;
+    color: var(--text-secondary);
+    margin: 0;
+  }
+
+  .progress {
+    display: flex;
+    gap: 6px;
+    margin-bottom: 1.5rem;
+  }
+
+  .progress-dot {
+    flex: 1;
+    height: 4px;
+    border-radius: 2px;
+    background: var(--border);
+    transition: background 0.2s;
+  }
+
+  .progress-dot.active,
+  .progress-dot.complete {
+    background: var(--accent);
+  }
+
+  .step {
+    display: none;
+    background: var(--card);
+    border: 0.5px solid var(--border);
+    border-radius: 12px;
+    padding: 1.25rem;
+    animation: fadein 0.25s ease;
+  }
+
+  .step.active { display: block; }
+
+  @keyframes fadein {
+    from { opacity: 0; transform: translateY(6px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .step h2 {
+    font-size: 17px;
+    font-weight: 500;
+    margin: 0 0 1rem;
+  }
+
+  .field {
+    margin-bottom: 1rem;
+  }
+
+  .field label {
+    display: block;
+    font-size: 13px;
+    color: var(--text-secondary);
+    margin-bottom: 6px;
+  }
+
+  .field input[type="number"] {
+    width: 100%;
+    font-size: 17px;
+    padding: 12px 14px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: var(--bg);
+    color: var(--text);
+    -webkit-appearance: none;
+  }
+
+  .field input[type="number"]:focus {
+    outline: none;
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px var(--accent-light);
+  }
+
+  .unit-suffix {
+    position: relative;
+  }
+
+  .unit-suffix span {
+    position: absolute;
+    right: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 14px;
+    color: var(--text-secondary);
+    pointer-events: none;
+  }
+
+  .shape-options {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .shape-btn {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px;
+    width: 100%;
+    padding: 14px 18px;
+    font-size: 16px;
+    font-weight: 500;
+    text-align: left;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    background: var(--bg);
+    color: var(--text);
+    cursor: pointer;
+    transition: border-color 0.15s, background 0.15s;
+  }
+
+  .shape-icon {
+    flex-shrink: 0;
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .shape-icon svg {
+    width: 36px;
+    height: 36px;
+    color: var(--text-secondary);
+  }
+
+  .shape-btn.selected .shape-icon svg {
+    color: var(--accent);
+  }
+
+  .shape-btn:active {
+    transform: scale(0.99);
+  }
+
+  .shape-btn.selected {
+    border-color: var(--accent);
+    background: var(--accent-light);
+    color: var(--accent);
+  }
+
+  .shape-btn .sub {
+    font-size: 13px;
+    font-weight: 400;
+    color: var(--text-secondary);
+  }
+
+  .shape-btn.selected .sub {
+    color: var(--accent);
+  }
+
+  .toggle-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 0;
+    border-top: 0.5px solid var(--border);
+    margin-top: 0.5rem;
+  }
+
+  .toggle-row label {
+    font-size: 15px;
+    font-weight: 500;
+    margin: 0;
+  }
+
+  .switch-btn {
+    position: relative;
+    width: 48px;
+    height: 28px;
+    flex-shrink: 0;
+    border: none;
+    padding: 0;
+    border-radius: 28px;
+    background: var(--border);
+    cursor: pointer;
+  }
+
+  .switch-btn::before {
+    content: "";
+    position: absolute;
+    height: 22px;
+    width: 22px;
+    left: 3px;
+    top: 3px;
+    background: white;
+    border-radius: 50%;
+    transition: left 0.15s ease;
+  }
+
+  .switch-btn.on {
+    background: var(--accent);
+  }
+
+  .switch-btn.on::before {
+    left: 23px;
+  }
+
+  .pattern-options {
+    display: none;
+    margin-top: 1rem;
+  }
+
+  .pattern-options.visible { display: block; }
+
+  .toggle-pills {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 1rem;
+  }
+
+  .toggle-pills button {
+    flex: 1;
+    padding: 10px;
+    font-size: 14px;
+    font-weight: 500;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: var(--bg);
+    color: var(--text-secondary);
+    cursor: pointer;
+  }
+
+  .toggle-pills button.selected {
+    border-color: var(--accent);
+    background: var(--accent-light);
+    color: var(--accent);
+  }
+
+  .pattern-sub {
+    display: none;
+  }
+
+  .pattern-sub.visible { display: block; }
+
+  .nav-buttons {
+    display: flex;
+    gap: 10px;
+    margin-top: 1.5rem;
+  }
+
+  .btn {
+    flex: 1;
+    padding: 14px;
+    font-size: 16px;
+    font-weight: 500;
+    border-radius: 10px;
+    border: none;
+    cursor: pointer;
+    -webkit-appearance: none;
+  }
+
+  .btn-primary {
+    background: var(--accent);
+    color: white;
+  }
+
+  .btn-primary:active {
+    opacity: 0.85;
+  }
+
+  .btn-secondary {
+    background: var(--bg);
+    color: var(--text);
+    border: 1px solid var(--border);
+  }
+
+  .btn:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+  }
+
+  .gut-check {
+    display: none;
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: 0.5px solid var(--border);
+    font-size: 13px;
+    color: var(--text-secondary);
+  }
+
+  .gut-check.visible { display: block; }
+
+  .gut-check-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    padding: 2px 0;
+  }
+
+  .gut-check-row .gc-value {
+    font-size: 15px;
+    font-weight: 500;
+    color: var(--text);
+  }
+
+  .radio-toggle {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 0.75rem;
+  }
+
+  .radio-toggle button {
+    flex: 1;
+    padding: 8px;
+    font-size: 13px;
+    font-weight: 500;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: var(--bg);
+    color: var(--text-secondary);
+    cursor: pointer;
+  }
+
+  .radio-toggle button.selected {
+    border-color: var(--accent);
+    background: var(--accent-light);
+    color: var(--accent);
+  }
+
+  .dim-field {
+    display: none;
+  }
+
+  .dim-field.visible { display: block; }
+
+  .results-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-bottom: 1rem;
+  }
+
+  .result-card {
+    background: var(--bg);
+    border-radius: 8px;
+    padding: 14px;
+  }
+
+  .result-card.full {
+    grid-column: 1 / -1;
+  }
+
+  .result-card .label {
+    font-size: 12px;
+    color: var(--text-secondary);
+    margin-bottom: 4px;
+  }
+
+  .result-card .value {
+    font-size: 22px;
+    font-weight: 500;
+  }
+
+  .result-card .value .unit {
+    font-size: 13px;
+    font-weight: 400;
+    color: var(--text-secondary);
+  }
+
+  .result-card.highlight {
+    background: var(--accent-light);
+    color: var(--accent);
+  }
+
+  .result-card.highlight .label {
+    color: var(--accent);
+    opacity: 0.8;
+  }
+
+  .breakdown-list {
+    border-top: 0.5px solid var(--border);
+    padding-top: 1rem;
+    margin-top: 0.5rem;
+  }
+
+  .breakdown-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 0;
+    font-size: 15px;
+    cursor: pointer;
+    user-select: none;
+    -webkit-user-select: none;
+  }
+
+  .breakdown-row.checked .name,
+  .breakdown-row.checked .amount {
+    color: var(--text-secondary);
+    text-decoration: line-through;
+  }
+
+  .breakdown-row .check-icon {
+    margin-right: 8px;
+    display: inline-block;
+    width: 1.2em;
+  }
+
+  .breakdown-row + .breakdown-row {
+    border-top: 0.5px solid var(--border);
+  }
+
+  .breakdown-row .name {
+    font-weight: 500;
+  }
+
+  .breakdown-row .amount {
+    font-size: 17px;
+    font-weight: 500;
+  }
+
+  .ratio-badge {
+    display: inline-block;
+    font-size: 12px;
+    color: var(--text-secondary);
+    background: var(--bg);
+    border-radius: 6px;
+    padding: 6px 10px;
+    margin-bottom: 1rem;
+  }
+
+  .summary-note {
+    font-size: 12px;
+    color: var(--text-secondary);
+    margin-top: 1rem;
+    line-height: 1.5;
+  }
+
+  .timer-section {
+    border-top: 0.5px solid var(--border);
+    margin-top: 1rem;
+    padding-top: 1rem;
+  }
+
+  .timer-section h3 {
+    font-size: 14px;
+    font-weight: 500;
+    margin: 0 0 0.75rem;
+    color: var(--text-secondary);
+  }
+
+  .timer-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .timer-btn {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 16px 18px;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    background: var(--bg);
+    color: var(--text);
+    cursor: pointer;
+    -webkit-appearance: none;
+    text-align: left;
+  }
+
+  .timer-btn .timer-info {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .timer-btn .timer-name {
+    font-size: 16px;
+    font-weight: 500;
+  }
+
+  .timer-btn .timer-desc {
+    font-size: 12px;
+    color: var(--text-secondary);
+    line-height: 1.3;
+  }
+
+  .timer-btn .timer-display {
+    font-size: 32px;
+    font-weight: 500;
+    font-variant-numeric: tabular-nums;
+    flex-shrink: 0;
+  }
+
+  .timer-btn.running {
+    border-color: var(--accent);
+    background: var(--accent-light);
+    color: var(--accent);
+  }
+
+  .timer-btn.running .timer-desc {
+    color: var(--accent);
+    opacity: 0.8;
+  }
+
+  .timer-btn.done {
+    border-color: var(--accent);
+    background: var(--accent);
+    color: white;
+  }
+
+  .timer-btn.done .timer-desc {
+    color: white;
+    opacity: 0.9;
+  }
+</style>
+</head>
+<body>
+<div class="container">
+  <header>
+    <h1>Mold investment calculator</h1>
+    <p>Calculate volume and get your mix recipe</p>
+  </header>
+
+  <div class="progress">
+    <div class="progress-dot" data-step="1"></div>
+    <div class="progress-dot" data-step="2"></div>
+    <div class="progress-dot" data-step="3"></div>
+    <div class="progress-dot" data-step="4"></div>
+  </div>
+
+  <!-- Step 1: Shape selection -->
+  <div class="step" data-step="1">
+    <h2>What kind of mold?</h2>
+    <div class="shape-options">
+      <button class="shape-btn" data-shape="box">
+        <span class="shape-text">Box<br><span class="sub">Rectangular cottle</span></span>
+        <span class="shape-icon">
+          <svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round" xmlns="http://www.w3.org/2000/svg">
+            <polygon points="6,16 24,8 42,16 24,24" />
+            <polygon points="6,16 6,34 24,42 24,24" />
+            <polygon points="42,16 42,34 24,42 24,24" />
+            <line x1="6" y1="16" x2="24" y2="24" />
+            <line x1="42" y1="16" x2="24" y2="24" />
+          </svg>
+        </span>
+      </button>
+      <button class="shape-btn" data-shape="cylinder">
+        <span class="shape-text">Cylinder<br><span class="sub">Round cottle</span></span>
+        <span class="shape-icon">
+          <svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round" xmlns="http://www.w3.org/2000/svg">
+            <ellipse cx="24" cy="10" rx="16" ry="6" />
+            <line x1="8" y1="10" x2="8" y2="34" />
+            <line x1="40" y1="10" x2="40" y2="34" />
+            <path d="M8 34 A16 6 0 0 0 40 34" />
+            <path d="M8 34 A16 6 0 0 1 40 34" stroke-dasharray="3 3" />
+          </svg>
+        </span>
+      </button>
+      <button class="shape-btn" data-shape="handbuilt">
+        <span class="shape-text">Hand-built<br><span class="sub">Estimate volume directly</span></span>
+        <span class="shape-icon">
+          <svg viewBox="-2 -2 52 52" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round" xmlns="http://www.w3.org/2000/svg">
+            <path d="M16 30 a9 9 0 0 0 9 9 h5 a9 9 0 0 0 9 -9 v-6" />
+            <path d="M16 30 l-2.5 -3.5 a2.4 2.4 0 0 1 3.8 -3 l3 3.5" />
+            <path d="M20.3 27 v-13.5 a2.4 2.4 0 0 1 4.8 0 v12.5" />
+            <path d="M25.1 26 v-17 a2.4 2.4 0 0 1 4.8 0 v16" />
+            <path d="M29.9 25 v-13.5 a2.4 2.4 0 0 1 4.8 0 v13.5" />
+            <path d="M34.7 25 v-8.5 a2.4 2.4 0 0 1 4.8 0 v7.5" />
+          </svg>
+        </span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Step 2: Dimensions -->
+  <div class="step" data-step="2">
+    <h2 id="step2-title">Enter dimensions</h2>
+
+    <div id="box-fields">
+      <div class="field">
+        <label for="box-l">Length</label>
+        <div class="unit-suffix">
+          <input type="number" inputmode="decimal" id="box-l" placeholder="0" min="0" step="0.1">
+          <span>cm</span>
+        </div>
+      </div>
+      <div class="field">
+        <label for="box-w">Width</label>
+        <div class="unit-suffix">
+          <input type="number" inputmode="decimal" id="box-w" placeholder="0" min="0" step="0.1">
+          <span>cm</span>
+        </div>
+      </div>
+      <div class="field">
+        <label for="box-h">Height</label>
+        <div class="unit-suffix">
+          <input type="number" inputmode="decimal" id="box-h" placeholder="0" min="0" step="0.1">
+          <span>cm</span>
+        </div>
+      </div>
+    </div>
+
+    <div id="cylinder-fields">
+      <div class="radio-toggle">
+        <button class="dim-mode-btn selected" data-dimmode="radius" type="button">Radius</button>
+        <button class="dim-mode-btn" data-dimmode="diameter" type="button">Diameter</button>
+      </div>
+      <div class="field dim-field visible" id="cyl-radius-field">
+        <label for="cyl-r">Radius</label>
+        <div class="unit-suffix">
+          <input type="number" inputmode="decimal" id="cyl-r" placeholder="0" min="0" step="0.1">
+          <span>cm</span>
+        </div>
+      </div>
+      <div class="field dim-field" id="cyl-diameter-field">
+        <label for="cyl-d">Diameter</label>
+        <div class="unit-suffix">
+          <input type="number" inputmode="decimal" id="cyl-d" placeholder="0" min="0" step="0.1">
+          <span>cm</span>
+        </div>
+      </div>
+      <div class="field">
+        <label for="cyl-h">Height</label>
+        <div class="unit-suffix">
+          <input type="number" inputmode="decimal" id="cyl-h" placeholder="0" min="0" step="0.1">
+          <span>cm</span>
+        </div>
+      </div>
+    </div>
+
+    <div id="handbuilt-fields">
+      <div class="field">
+        <label for="hb-vol">Estimated volume</label>
+        <div class="unit-suffix">
+          <input type="number" inputmode="decimal" id="hb-vol" placeholder="0" min="0" step="0.1">
+          <span>cm³</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="gut-check" id="step2-gutcheck">
+      <div class="gut-check-row">
+        <span>Cottle volume</span>
+        <span class="gc-value" id="gc-cottle-volume">—</span>
+      </div>
+    </div>
+
+    <div class="nav-buttons">
+      <button class="btn btn-secondary" id="back2">Back</button>
+      <button class="btn btn-primary" id="next2" disabled>Next</button>
+    </div>
+  </div>
+
+  <!-- Step 3: Pattern subtraction -->
+  <div class="step" data-step="3">
+    <h2>Subtract a pattern?</h2>
+    <p style="font-size: 14px; color: var(--text-secondary); margin-top: -0.5rem;">
+      If there's a pattern inside the cottle, subtract its volume from the total.
+    </p>
+
+    <div class="toggle-row">
+      <label for="pattern-toggle">Subtract pattern volume</label>
+      <button class="switch-btn" id="pattern-toggle" type="button" aria-label="Subtract pattern volume" aria-pressed="false"></button>
+    </div>
+
+    <div class="pattern-options" id="pattern-options">
+      <div class="toggle-pills">
+        <button class="pill-btn selected" data-mode="volume">Estimated volume</button>
+        <button class="pill-btn" data-mode="weight">By weight (wax)</button>
+      </div>
+
+      <div class="pattern-sub visible" id="pattern-volume-sub">
+        <div class="field">
+          <label for="pattern-vol">Pattern volume</label>
+          <div class="unit-suffix">
+            <input type="number" inputmode="decimal" id="pattern-vol" placeholder="0" min="0" step="0.1">
+            <span>cm³</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="pattern-sub" id="pattern-weight-sub">
+        <div class="field">
+          <label for="pattern-weight">Pattern weight</label>
+          <div class="unit-suffix">
+            <input type="number" inputmode="decimal" id="pattern-weight" placeholder="0" min="0" step="0.1">
+            <span>g</span>
+          </div>
+        </div>
+        <p style="font-size: 12px; color: var(--text-secondary); margin-top: -0.5rem;">
+          Converted using Victory Brown wax specific gravity (0.93)
+        </p>
+      </div>
+    </div>
+
+    <div class="gut-check" id="step3-gutcheck">
+      <div class="gut-check-row">
+        <span>Cottle volume</span>
+        <span class="gc-value" id="gc-step3-cottle">—</span>
+      </div>
+      <div class="gut-check-row" id="gc-step3-pattern-row">
+        <span>Pattern volume</span>
+        <span class="gc-value" id="gc-step3-pattern">—</span>
+      </div>
+      <div class="gut-check-row" id="gc-step3-net-row">
+        <span>Net volume</span>
+        <span class="gc-value" id="gc-step3-net">—</span>
+      </div>
+    </div>
+
+    <div class="nav-buttons">
+      <button class="btn btn-secondary" id="back3">Back</button>
+      <button class="btn btn-primary" id="next3">Calculate</button>
+    </div>
+  </div>
+
+  <!-- Step 4: Results -->
+  <div class="step" data-step="4">
+    <h2>Your recipe</h2>
+    <div class="ratio-badge" id="ratio-label"></div>
+
+    <div class="results-grid" id="volume-results"></div>
+
+    <div class="breakdown-list" id="breakdown-list"></div>
+
+    <p class="summary-note">
+      Weights are calculated for the net mold volume × 0.64 = water weight (g), with silica and plaster scaled by ratio. Round up as needed for your mix.
+    </p>
+
+    <div class="timer-section">
+      <h3>Timers</h3>
+      <div class="timer-buttons">
+        <button class="timer-btn" id="slake-timer" data-seconds="180" type="button">
+          <span class="timer-info">
+            <span class="timer-name">Slake</span>
+            <span class="timer-desc">Sprinkle dry into water, let sit</span>
+          </span>
+          <span class="timer-display">3:00</span>
+        </button>
+        <button class="timer-btn" id="mix-timer" data-seconds="180" type="button">
+          <span class="timer-info">
+            <span class="timer-name">Mix</span>
+            <span class="timer-desc">Stir to a smooth consistency</span>
+          </span>
+          <span class="timer-display">3:00</span>
+        </button>
+      </div>
+    </div>
+
+    <div class="nav-buttons">
+      <button class="btn btn-secondary" id="back4">Back</button>
+      <button class="btn btn-primary" id="restart">Start over</button>
+    </div>
+  </div>
+</div>
+
+<script>
+(function () {
+  const state = {
+    shape: null,
+    box: { l: 0, w: 0, h: 0 },
+    cylinder: { dimMode: 'radius', r: 0, d: 0, h: 0 },
+    handbuilt: { vol: 0 },
+    patternEnabled: false,
+    patternMode: 'volume',
+    patternVol: 0,
+    patternWeight: 0
+  };
+
+  const WAX_SG = 0.93;
+  const WATER_RATIO = 0.64;
+
+  function round(n) {
+    return Math.round(n * 10) / 10;
+  }
+
+  function getCottleVolume() {
+    if (state.shape === 'box') {
+      const l = parseFloat(document.getElementById('box-l').value) || 0;
+      const w = parseFloat(document.getElementById('box-w').value) || 0;
+      const h = parseFloat(document.getElementById('box-h').value) || 0;
+      return l * w * h;
+    } else if (state.shape === 'cylinder') {
+      let r;
+      if (state.cylinder.dimMode === 'radius') {
+        r = parseFloat(document.getElementById('cyl-r').value) || 0;
+      } else {
+        const d = parseFloat(document.getElementById('cyl-d').value) || 0;
+        r = d / 2;
+      }
+      const h = parseFloat(document.getElementById('cyl-h').value) || 0;
+      return Math.PI * r * r * h;
+    } else {
+      return parseFloat(document.getElementById('hb-vol').value) || 0;
+    }
+  }
+
+  const steps = document.querySelectorAll('.step');
+  const dots = document.querySelectorAll('.progress-dot');
+
+  function showStep(n) {
+    steps.forEach(s => s.classList.toggle('active', s.dataset.step === String(n)));
+    dots.forEach(d => {
+      const ds = Number(d.dataset.step);
+      d.classList.toggle('active', ds === n);
+      d.classList.toggle('complete', ds < n);
+    });
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  // Step 1: shape selection
+  const shapeButtons = document.querySelectorAll('.shape-btn');
+
+  shapeButtons.forEach(btn => {
+    btn.addEventListener('click', () => {
+      shapeButtons.forEach(b => b.classList.remove('selected'));
+      btn.classList.add('selected');
+      state.shape = btn.dataset.shape;
+      setupStep2();
+      showStep(2);
+    });
+  });
+
+  // Step 2: dimensions
+  const step2Title = document.getElementById('step2-title');
+  const boxFields = document.getElementById('box-fields');
+  const cylinderFields = document.getElementById('cylinder-fields');
+  const handbuiltFields = document.getElementById('handbuilt-fields');
+  const next2 = document.getElementById('next2');
+  const back2 = document.getElementById('back2');
+
+  function setupStep2() {
+    boxFields.style.display = 'none';
+    cylinderFields.style.display = 'none';
+    handbuiltFields.style.display = 'none';
+
+    if (state.shape === 'box') {
+      step2Title.textContent = 'Box dimensions';
+      boxFields.style.display = 'block';
+      focusField('box-l');
+    } else if (state.shape === 'cylinder') {
+      step2Title.textContent = 'Cylinder dimensions';
+      cylinderFields.style.display = 'block';
+      focusField(state.cylinder.dimMode === 'radius' ? 'cyl-r' : 'cyl-d');
+    } else {
+      step2Title.textContent = 'Estimated volume';
+      handbuiltFields.style.display = 'block';
+      focusField('hb-vol');
+    }
+    validateStep2();
+  }
+
+  function focusField(id) {
+    requestAnimationFrame(() => {
+      const el = document.getElementById(id);
+      if (el) el.focus();
+    });
+  }
+
+  const step2Gutcheck = document.getElementById('step2-gutcheck');
+  const gcCottleVolume = document.getElementById('gc-cottle-volume');
+
+  function validateStep2() {
+    let valid = false;
+    if (state.shape === 'box') {
+      const l = parseFloat(document.getElementById('box-l').value);
+      const w = parseFloat(document.getElementById('box-w').value);
+      const h = parseFloat(document.getElementById('box-h').value);
+      valid = l > 0 && w > 0 && h > 0;
+    } else if (state.shape === 'cylinder') {
+      const h = parseFloat(document.getElementById('cyl-h').value);
+      let dim;
+      if (state.cylinder.dimMode === 'radius') {
+        dim = parseFloat(document.getElementById('cyl-r').value);
+      } else {
+        dim = parseFloat(document.getElementById('cyl-d').value);
+      }
+      valid = dim > 0 && h > 0;
+    } else {
+      const v = parseFloat(document.getElementById('hb-vol').value);
+      valid = v > 0;
+    }
+    next2.disabled = !valid;
+
+    if (valid) {
+      const vol = getCottleVolume();
+      gcCottleVolume.textContent = round(vol) + ' cm³';
+      step2Gutcheck.classList.add('visible');
+    } else {
+      step2Gutcheck.classList.remove('visible');
+    }
+  }
+
+  ['box-l', 'box-w', 'box-h', 'cyl-r', 'cyl-d', 'cyl-h', 'hb-vol'].forEach(id => {
+    document.getElementById(id).addEventListener('input', validateStep2);
+  });
+
+  // Keep radius and diameter in sync
+  const cylRInput = document.getElementById('cyl-r');
+  const cylDInput = document.getElementById('cyl-d');
+
+  cylRInput.addEventListener('input', () => {
+    const r = parseFloat(cylRInput.value);
+    cylDInput.value = isNaN(r) ? '' : round(r * 2);
+  });
+
+  cylDInput.addEventListener('input', () => {
+    const d = parseFloat(cylDInput.value);
+    cylRInput.value = isNaN(d) ? '' : round(d / 2);
+  });
+
+  // Cylinder radius/diameter toggle
+  const dimModeButtons = document.querySelectorAll('.dim-mode-btn');
+  const cylRadiusField = document.getElementById('cyl-radius-field');
+  const cylDiameterField = document.getElementById('cyl-diameter-field');
+
+  dimModeButtons.forEach(btn => {
+    btn.addEventListener('click', () => {
+      dimModeButtons.forEach(b => b.classList.remove('selected'));
+      btn.classList.add('selected');
+      state.cylinder.dimMode = btn.dataset.dimmode;
+      cylRadiusField.classList.toggle('visible', state.cylinder.dimMode === 'radius');
+      cylDiameterField.classList.toggle('visible', state.cylinder.dimMode === 'diameter');
+      validateStep2();
+      focusField(state.cylinder.dimMode === 'radius' ? 'cyl-r' : 'cyl-d');
+    });
+  });
+
+  back2.addEventListener('click', () => showStep(1));
+
+  next2.addEventListener('click', () => {
+    showStep(3);
+    updateStep3Gutcheck();
+  });
+
+  // Step 3: pattern subtraction
+  const patternToggle = document.getElementById('pattern-toggle');
+  const patternOptions = document.getElementById('pattern-options');
+  const pillButtons = document.querySelectorAll('.pill-btn');
+  const patternVolumeSub = document.getElementById('pattern-volume-sub');
+  const patternWeightSub = document.getElementById('pattern-weight-sub');
+  const back3 = document.getElementById('back3');
+  const next3 = document.getElementById('next3');
+
+  const step3Gutcheck = document.getElementById('step3-gutcheck');
+  const gcStep3Cottle = document.getElementById('gc-step3-cottle');
+  const gcStep3Pattern = document.getElementById('gc-step3-pattern');
+  const gcStep3Net = document.getElementById('gc-step3-net');
+  const gcStep3PatternRow = document.getElementById('gc-step3-pattern-row');
+  const gcStep3NetRow = document.getElementById('gc-step3-net-row');
+
+  function getPatternVolume() {
+    if (!state.patternEnabled) return 0;
+    if (state.patternMode === 'volume') {
+      return parseFloat(document.getElementById('pattern-vol').value) || 0;
+    } else {
+      const w = parseFloat(document.getElementById('pattern-weight').value) || 0;
+      return w / WAX_SG;
+    }
+  }
+
+  function updateStep3Gutcheck() {
+    const cottleVol = getCottleVolume();
+    gcStep3Cottle.textContent = round(cottleVol) + ' cm³';
+
+    if (state.patternEnabled) {
+      const patternVol = getPatternVolume();
+      const netVol = Math.max(0, cottleVol - patternVol);
+      gcStep3Pattern.textContent = round(patternVol) + ' cm³';
+      gcStep3Net.textContent = round(netVol) + ' cm³';
+      gcStep3PatternRow.style.display = 'flex';
+      gcStep3NetRow.style.display = 'flex';
+    } else {
+      gcStep3PatternRow.style.display = 'none';
+      gcStep3NetRow.style.display = 'none';
+    }
+    step3Gutcheck.classList.add('visible');
+  }
+
+  patternToggle.addEventListener('click', () => {
+    state.patternEnabled = !state.patternEnabled;
+    patternToggle.classList.toggle('on', state.patternEnabled);
+    patternToggle.setAttribute('aria-pressed', String(state.patternEnabled));
+    patternOptions.classList.toggle('visible', state.patternEnabled);
+    updateStep3Gutcheck();
+    if (state.patternEnabled) {
+      focusField(state.patternMode === 'volume' ? 'pattern-vol' : 'pattern-weight');
+    }
+  });
+
+  ['pattern-vol', 'pattern-weight'].forEach(id => {
+    document.getElementById(id).addEventListener('input', updateStep3Gutcheck);
+  });
+
+  pillButtons.forEach(btn => {
+    btn.addEventListener('click', () => {
+      pillButtons.forEach(b => b.classList.remove('selected'));
+      btn.classList.add('selected');
+      state.patternMode = btn.dataset.mode;
+      patternVolumeSub.classList.toggle('visible', state.patternMode === 'volume');
+      patternWeightSub.classList.toggle('visible', state.patternMode === 'weight');
+      updateStep3Gutcheck();
+      focusField(state.patternMode === 'volume' ? 'pattern-vol' : 'pattern-weight');
+    });
+  });
+
+  back3.addEventListener('click', () => showStep(2));
+
+  next3.addEventListener('click', () => {
+    if (state.patternEnabled) {
+      if (state.patternMode === 'volume') {
+        state.patternVol = parseFloat(document.getElementById('pattern-vol').value) || 0;
+      } else {
+        state.patternWeight = parseFloat(document.getElementById('pattern-weight').value) || 0;
+        state.patternVol = state.patternWeight / WAX_SG;
+      }
+    } else {
+      state.patternVol = 0;
+    }
+    calculateAndShowResults();
+    showStep(4);
+  });
+
+  // Step 4: results
+  const back4 = document.getElementById('back4');
+  const restart = document.getElementById('restart');
+
+  back4.addEventListener('click', () => showStep(3));
+
+  restart.addEventListener('click', () => {
+    location.reload();
+  });
+
+  // Timers
+  function setupTimer(btn) {
+    const totalSeconds = parseInt(btn.dataset.seconds, 10);
+    const display = btn.querySelector('.timer-display');
+    let remaining = totalSeconds;
+    let intervalId = null;
+
+    function formatTime(s) {
+      const m = Math.floor(s / 60);
+      const sec = s % 60;
+      return m + ':' + String(sec).padStart(2, '0');
+    }
+
+    function tick() {
+      remaining -= 1;
+      if (remaining <= 0) {
+        remaining = 0;
+        display.textContent = formatTime(remaining);
+        clearInterval(intervalId);
+        intervalId = null;
+        btn.classList.remove('running');
+        btn.classList.add('done');
+        if (navigator.vibrate) navigator.vibrate([200, 100, 200]);
+      } else {
+        display.textContent = formatTime(remaining);
+      }
+    }
+
+    btn.addEventListener('click', () => {
+      if (intervalId) {
+        clearInterval(intervalId);
+        intervalId = null;
+        btn.classList.remove('running');
+        remaining = totalSeconds;
+        display.textContent = formatTime(remaining);
+      } else {
+        btn.classList.remove('done');
+        btn.classList.add('running');
+        remaining = totalSeconds;
+        display.textContent = formatTime(remaining);
+        intervalId = setInterval(tick, 1000);
+      }
+    });
+  }
+
+  setupTimer(document.getElementById('slake-timer'));
+  setupTimer(document.getElementById('mix-timer'));
+
+  function calculateAndShowResults() {
+    let cottleVolume = getCottleVolume();
+
+    const patternVol = state.patternEnabled ? state.patternVol : 0;
+    const netVolume = Math.max(0, cottleVolume - patternVol);
+
+    const waterWeight = netVolume * WATER_RATIO;
+
+    let silicaWeight, plasterWeight, ratioLabel;
+    if (state.shape === 'handbuilt') {
+      silicaWeight = waterWeight;
+      plasterWeight = waterWeight;
+      ratioLabel = 'Ratio 1 : 1 : 1 (water : silica : plaster) — hand-built mix';
+    } else {
+      silicaWeight = waterWeight * 1.1;
+      plasterWeight = waterWeight * 0.7;
+      ratioLabel = 'Ratio 1 : 1.1 : 0.7 (water : silica : plaster) — 60/40 poured mix';
+    }
+
+    document.getElementById('ratio-label').textContent = ratioLabel;
+
+    const volResults = document.getElementById('volume-results');
+    let volHtml = '';
+
+    volHtml += `<div class="result-card"><div class="label">Cottle volume</div><div class="value">${round(cottleVolume)} <span class="unit">cm³</span></div></div>`;
+
+    if (state.patternEnabled && patternVol > 0) {
+      volHtml += `<div class="result-card"><div class="label">Pattern volume</div><div class="value">${round(patternVol)} <span class="unit">cm³</span></div></div>`;
+      volHtml += `<div class="result-card highlight full"><div class="label">Net volume</div><div class="value">${round(netVolume)} <span class="unit">cm³</span></div></div>`;
+    } else {
+      volHtml += `<div class="result-card highlight"><div class="label">Net volume</div><div class="value">${round(netVolume)} <span class="unit">cm³</span></div></div>`;
+    }
+
+    volResults.innerHTML = volHtml;
+
+    const breakdown = document.getElementById('breakdown-list');
+    breakdown.innerHTML = `
+      <div class="breakdown-row" data-ingredient="water">
+        <span class="name"><span class="check-icon"></span>Water</span>
+        <span class="amount">${round(waterWeight)} g</span>
+      </div>
+      <div class="breakdown-row" data-ingredient="silica">
+        <span class="name"><span class="check-icon"></span>Silica</span>
+        <span class="amount">${round(silicaWeight)} g</span>
+      </div>
+      <div class="breakdown-row" data-ingredient="plaster">
+        <span class="name"><span class="check-icon"></span>Plaster</span>
+        <span class="amount">${round(plasterWeight)} g</span>
+      </div>
+    `;
+
+    breakdown.querySelectorAll('.breakdown-row').forEach(row => {
+      row.addEventListener('click', () => {
+        row.classList.toggle('checked');
+        const icon = row.querySelector('.check-icon');
+        icon.textContent = row.classList.contains('checked') ? '✅' : '';
+      });
+    });
+  }
+
+  showStep(1);
+})();
+</script>
+</body>
+</html>
