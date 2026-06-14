@@ -1023,6 +1023,10 @@
     patternToggle.classList.toggle('on', state.patternEnabled);
     patternToggle.setAttribute('aria-pressed', String(state.patternEnabled));
     patternOptions.classList.toggle('visible', state.patternEnabled);
+    if (!state.patternEnabled) {
+      state.patternVol = 0;
+      state.patternWeight = 0;
+    }
     updateStep3Gutcheck();
     if (state.patternEnabled) {
       focusField(state.patternMode === 'volume' ? 'pattern-vol' : 'pattern-weight');
