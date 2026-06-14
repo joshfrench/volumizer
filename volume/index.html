@@ -521,6 +521,141 @@
     color: white;
     opacity: 0.9;
   }
+
+  .preset-pills {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 1rem;
+  }
+
+  .preset-pills button {
+    flex: 1;
+    padding: 10px 6px;
+    font-size: 12px;
+    font-weight: 500;
+    line-height: 1.3;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: var(--bg);
+    color: var(--text-secondary);
+    cursor: pointer;
+  }
+
+  .preset-pills button.selected {
+    border-color: var(--accent);
+    background: var(--accent-light);
+    color: var(--accent);
+  }
+
+  .preset-description {
+    font-size: 13px;
+    color: var(--text-secondary);
+    margin: -0.25rem 0 1rem;
+    min-height: 1.2em;
+  }
+
+  .recipe-rows {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-bottom: 1rem;
+  }
+
+  .recipe-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .recipe-row input[type="text"] {
+    flex: 1;
+    font-size: 16px;
+    padding: 12px 14px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: var(--bg);
+    color: var(--text);
+    -webkit-appearance: none;
+    min-width: 0;
+  }
+
+  .recipe-row input[type="text"]:focus {
+    outline: none;
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px var(--accent-light);
+  }
+
+  .recipe-row input[type="text"]:disabled {
+    color: var(--text);
+    opacity: 0.7;
+  }
+
+  .recipe-row .parts-wrap {
+    position: relative;
+    width: 100px;
+    flex-shrink: 0;
+  }
+
+  .recipe-row .parts-wrap input[type="number"] {
+    width: 100%;
+    font-size: 16px;
+    padding: 12px 44px 12px 14px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: var(--bg);
+    color: var(--text);
+    -webkit-appearance: none;
+  }
+
+  .recipe-row .parts-wrap input[type="number"]:focus {
+    outline: none;
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px var(--accent-light);
+  }
+
+  .recipe-row .parts-wrap span {
+    position: absolute;
+    right: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 13px;
+    color: var(--text-secondary);
+    pointer-events: none;
+  }
+
+  .recipe-row .remove-row {
+    flex-shrink: 0;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: var(--bg);
+    color: var(--text-secondary);
+    font-size: 18px;
+    cursor: pointer;
+    -webkit-appearance: none;
+  }
+
+  .recipe-row .remove-row:disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+  }
+
+  .add-row-btn {
+    width: 100%;
+    padding: 12px;
+    font-size: 15px;
+    font-weight: 500;
+    border: 1px dashed var(--border);
+    border-radius: 8px;
+    background: var(--bg);
+    color: var(--text-secondary);
+    cursor: pointer;
+    -webkit-appearance: none;
+  }
 </style>
 </head>
 <body>
@@ -535,6 +670,7 @@
     <div class="progress-dot" data-step="2"></div>
     <div class="progress-dot" data-step="3"></div>
     <div class="progress-dot" data-step="4"></div>
+    <div class="progress-dot" data-step="5"></div>
   </div>
 
   <!-- Step 1: Shape selection -->
@@ -719,13 +855,49 @@
 
     <div class="nav-buttons">
       <button class="btn btn-secondary" id="back3">Back</button>
-      <button class="btn btn-primary" id="next3">Calculate</button>
+      <button class="btn btn-primary" id="next3">Next</button>
     </div>
   </div>
 
-  <!-- Step 4: Results -->
+  <!-- Step 4: Recipe -->
   <div class="step" data-step="4">
     <h2>Your recipe</h2>
+    <p class="step-note">
+      How much of each ingredient, relative to water? Water is always 1 part — everything else is measured against it.
+    </p>
+
+    <div class="preset-pills" id="recipe-presets"></div>
+
+    <p class="preset-description" id="preset-description"></p>
+
+    <div class="recipe-rows" id="recipe-rows"></div>
+
+    <button class="add-row-btn" id="add-ingredient" type="button">+ Add ingredient</button>
+
+    <div class="gut-check" id="step4-gutcheck">
+      <div class="gut-check-row">
+        <span>Cottle volume</span>
+        <span class="gc-value" id="gc-step4-cottle">—</span>
+      </div>
+      <div class="gut-check-row" id="gc-step4-pattern-row">
+        <span>Pattern volume</span>
+        <span class="gc-value" id="gc-step4-pattern">—</span>
+      </div>
+      <div class="gut-check-row" id="gc-step4-net-row">
+        <span>Net volume</span>
+        <span class="gc-value" id="gc-step4-net">—</span>
+      </div>
+    </div>
+
+    <div class="nav-buttons">
+      <button class="btn btn-secondary" id="back4">Back</button>
+      <button class="btn btn-primary" id="next4">Calculate</button>
+    </div>
+  </div>
+
+  <!-- Step 5: Results -->
+  <div class="step" data-step="5">
+    <h2>Your mix</h2>
     <div class="ratio-badge" id="ratio-label"></div>
 
     <div class="results-grid" id="volume-results"></div>
@@ -733,7 +905,7 @@
     <div class="breakdown-list" id="breakdown-list"></div>
 
     <p class="summary-note">
-      Weights are calculated for the net mold volume × 0.64 = water weight (g), with silica and plaster scaled by ratio. Round up as needed for your mix.
+      Weights are calculated from net mold volume × 0.64 = water weight (g), with each ingredient scaled by its parts relative to water. Round up as needed for your mix.
     </p>
 
     <div class="timer-section">
@@ -757,12 +929,13 @@
     </div>
 
     <div class="nav-buttons">
-      <button class="btn btn-secondary" id="back4">Back</button>
+      <button class="btn btn-secondary" id="back5">Back</button>
       <button class="btn btn-primary" id="restart">Start over</button>
     </div>
   </div>
 </div>
 
+<script src="recipes.js"></script>
 <script>
 (function () {
   const state = {
@@ -773,8 +946,11 @@
     patternEnabled: false,
     patternMode: 'volume',
     patternVol: 0,
-    patternWeight: 0
+    patternWeight: 0,
+    recipe: []
   };
+
+  const PRESETS = RECIPE_PRESETS;
 
   const WAX_SG = 0.93;
   const WATER_RATIO = 0.64;
@@ -1031,15 +1207,175 @@
     } else {
       state.patternVol = 0;
     }
-    calculateAndShowResults();
+    setupStep4();
     showStep(4);
   });
 
-  // Step 4: results
+  // Step 4: recipe
   const back4 = document.getElementById('back4');
-  const restart = document.getElementById('restart');
+  const next4 = document.getElementById('next4');
+  const recipeRowsEl = document.getElementById('recipe-rows');
+  const addIngredientBtn = document.getElementById('add-ingredient');
+  const recipePresetsEl = document.getElementById('recipe-presets');
+
+  recipePresetsEl.innerHTML = Object.keys(PRESETS).map(key =>
+    `<button class="preset-btn" data-preset="${key}" type="button">${PRESETS[key].label}</button>`
+  ).join('');
+
+  const presetButtons = document.querySelectorAll('.preset-btn');
+
+  const step4Gutcheck = document.getElementById('step4-gutcheck');
+  const gcStep4Cottle = document.getElementById('gc-step4-cottle');
+  const gcStep4Pattern = document.getElementById('gc-step4-pattern');
+  const gcStep4Net = document.getElementById('gc-step4-net');
+  const gcStep4PatternRow = document.getElementById('gc-step4-pattern-row');
+  const gcStep4NetRow = document.getElementById('gc-step4-net-row');
+
+  let recipeInitialized = false;
+
+  function setupStep4() {
+    if (!recipeInitialized) {
+      const defaultPreset = DEFAULT_PRESET_BY_SHAPE[state.shape] || '6040';
+      state.recipe = PRESETS[defaultPreset].ingredients.map(i => ({ ...i }));
+      recipeInitialized = true;
+    }
+    renderRecipeRows();
+    updateStep4Gutcheck();
+  }
+
+  function renderRecipeRows() {
+    recipeRowsEl.innerHTML = '';
+    state.recipe.forEach((ing, idx) => {
+      const row = document.createElement('div');
+      row.className = 'recipe-row';
+
+      const nameInput = document.createElement('input');
+      nameInput.type = 'text';
+      nameInput.value = ing.name;
+      nameInput.placeholder = 'Ingredient';
+      if (idx === 0) {
+        nameInput.disabled = true;
+      } else {
+        nameInput.addEventListener('input', () => {
+          ing.name = nameInput.value;
+          updatePresetHighlight();
+        });
+      }
+
+      const partsWrap = document.createElement('div');
+      partsWrap.className = 'parts-wrap';
+      const partsInput = document.createElement('input');
+      partsInput.type = 'number';
+      partsInput.inputMode = 'decimal';
+      partsInput.min = '0';
+      partsInput.step = '0.01';
+      partsInput.value = ing.parts;
+      if (idx === 0) {
+        partsInput.disabled = true;
+      } else {
+        partsInput.addEventListener('input', () => {
+          ing.parts = parseFloat(partsInput.value) || 0;
+          updatePresetHighlight();
+        });
+      }
+      const partsLabel = document.createElement('span');
+      partsLabel.textContent = 'parts';
+      partsWrap.appendChild(partsInput);
+      partsWrap.appendChild(partsLabel);
+
+      const removeBtn = document.createElement('button');
+      removeBtn.type = 'button';
+      removeBtn.className = 'remove-row';
+      removeBtn.textContent = '×';
+      removeBtn.setAttribute('aria-label', 'Remove ingredient');
+      if (idx === 0) {
+        removeBtn.disabled = true;
+      } else {
+        removeBtn.addEventListener('click', () => {
+          state.recipe.splice(idx, 1);
+          renderRecipeRows();
+          updatePresetHighlight();
+        });
+      }
+
+      row.appendChild(nameInput);
+      row.appendChild(partsWrap);
+      row.appendChild(removeBtn);
+      recipeRowsEl.appendChild(row);
+    });
+    updatePresetHighlight();
+  }
+
+  function recipeMatchesPreset(presetKey) {
+    const preset = PRESETS[presetKey].ingredients;
+    if (state.recipe.length !== preset.length) return false;
+    return state.recipe.every((ing, idx) => {
+      const p = preset[idx];
+      return ing.name.trim().toLowerCase() === p.name.toLowerCase() &&
+        Math.abs(ing.parts - p.parts) < 0.001;
+    });
+  }
+
+  const presetDescriptionEl = document.getElementById('preset-description');
+
+  function updatePresetHighlight() {
+    let matched = null;
+    presetButtons.forEach(btn => {
+      const matches = recipeMatchesPreset(btn.dataset.preset);
+      btn.classList.toggle('selected', matches);
+      if (matches) matched = btn.dataset.preset;
+    });
+    presetDescriptionEl.textContent = matched ? PRESETS[matched].description : '';
+  }
+
+  presetButtons.forEach(btn => {
+    btn.addEventListener('click', () => {
+      state.recipe = PRESETS[btn.dataset.preset].ingredients.map(i => ({ ...i }));
+      renderRecipeRows();
+    });
+  });
+
+  addIngredientBtn.addEventListener('click', () => {
+    state.recipe.push({ name: '', parts: 0 });
+    renderRecipeRows();
+    const rows = recipeRowsEl.querySelectorAll('.recipe-row');
+    const lastRow = rows[rows.length - 1];
+    if (lastRow) {
+      const input = lastRow.querySelector('input[type="text"]');
+      if (input) requestAnimationFrame(() => input.focus());
+    }
+  });
+
+  function updateStep4Gutcheck() {
+    const cottleVol = getCottleVolume();
+    gcStep4Cottle.textContent = round(cottleVol) + ' cm³';
+
+    if (state.patternEnabled) {
+      const patternVol = state.patternVol;
+      const netVol = Math.max(0, cottleVol - patternVol);
+      gcStep4Pattern.textContent = round(patternVol) + ' cm³';
+      gcStep4Net.textContent = round(netVol) + ' cm³';
+      gcStep4PatternRow.style.display = 'flex';
+      gcStep4NetRow.style.display = 'flex';
+    } else {
+      gcStep4PatternRow.style.display = 'none';
+      gcStep4NetRow.style.display = 'none';
+    }
+    step4Gutcheck.classList.add('visible');
+  }
 
   back4.addEventListener('click', () => showStep(3));
+
+  next4.addEventListener('click', () => {
+    calculateAndShowResults();
+    showStep(5);
+  });
+
+  // Step 5: results
+  const back5 = document.getElementById('back5');
+  const restart = document.getElementById('restart');
+
+  back5.addEventListener('click', () => showStep(4));
 
   restart.addEventListener('click', () => {
     timerStops.forEach(stop => stop());
@@ -1111,16 +1447,12 @@
 
     const waterWeight = netVolume * WATER_RATIO;
 
-    let silicaWeight, plasterWeight, ratioLabel;
-    if (state.shape === 'handbuilt') {
-      silicaWeight = waterWeight;
-      plasterWeight = waterWeight;
-      ratioLabel = 'Ratio 1 : 1 : 1 (water : silica : plaster) — hand-built mix';
-    } else {
-      silicaWeight = waterWeight * 1.1;
-      plasterWeight = waterWeight * 0.7;
-      ratioLabel = 'Ratio 1 : 1.1 : 0.7 (water : silica : plaster) — 60/40 poured mix';
-    }
+    const ingredients = state.recipe
+      .map(ing => ({ name: ing.name.trim() || 'Ingredient', parts: ing.parts, weight: waterWeight * ing.parts }))
+      .filter(ing => ing.parts > 0);
+
+    const ratioLabel = 'Ratio ' + state.recipe.map(ing => round(ing.parts)).join(' : ') +
+      ' (' + state.recipe.map(ing => (ing.name.trim() || 'Ingredient')).join(' : ') + ')';
 
     document.getElementById('ratio-label').textContent = ratioLabel;
 
@@ -1139,20 +1471,12 @@
     volResults.innerHTML = volHtml;
 
     const breakdown = document.getElementById('breakdown-list');
-    breakdown.innerHTML = `
-      <div class="breakdown-row" data-ingredient="water">
-        <span class="name"><span class="check-icon"></span>Water</span>
-        <span class="amount">${round(waterWeight)} g</span>
+    breakdown.innerHTML = ingredients.map(ing => `
+      <div class="breakdown-row" data-ingredient="${ing.name}">
+        <span class="name"><span class="check-icon"></span>${ing.name}</span>
+        <span class="amount">${round(ing.weight)} g</span>
       </div>
-      <div class="breakdown-row" data-ingredient="silica">
-        <span class="name"><span class="check-icon"></span>Silica</span>
-        <span class="amount">${round(silicaWeight)} g</span>
-      </div>
-      <div class="breakdown-row" data-ingredient="plaster">
-        <span class="name"><span class="check-icon"></span>Plaster</span>
-        <span class="amount">${round(plasterWeight)} g</span>
-      </div>
-    `;
+    `).join('');
 
     breakdown.querySelectorAll('.breakdown-row').forEach(row => {
       row.addEventListener('click', () => {
