@@ -1074,10 +1074,13 @@
   back4.addEventListener('click', () => showStep(3));
 
   restart.addEventListener('click', () => {
+    timerStops.forEach(stop => stop());
     location.reload();
   });
 
   // Timers
+  const timerStops = [];
+
   function setupTimer(btn) {
     const totalSeconds = parseInt(btn.dataset.seconds, 10);
     const display = btn.querySelector('.timer-display');
@@ -1118,6 +1121,13 @@
         remaining = totalSeconds;
         display.textContent = formatTime(remaining);
         intervalId = setInterval(tick, 1000);
+      }
+    });
+
+    timerStops.push(() => {
+      if (intervalId) {
+        clearInterval(intervalId);
+        intervalId = null;
       }
     });
   }
