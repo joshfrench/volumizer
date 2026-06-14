@@ -16,7 +16,7 @@ const RECIPE_PRESETS = {
   },
   '6040': {
     label: '60 / 40',
-    description: 'Thinner mix for pouring.',
+    description: 'Thinner mix for poured cottles.',
     ingredients: [
       { name: 'Water', parts: 1 },
       { name: 'Silica', parts: 1.1 },
