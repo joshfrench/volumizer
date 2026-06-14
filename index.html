@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Home</title>
+<link rel="stylesheet" href="theme.css">
+<style>
+  .section {
+    margin-bottom: 1.5rem;
+  }
+
+  .section h2 {
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    margin: 0 0 0.75rem;
+  }
+
+  .link-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .link-card {
+    display: block;
+    padding: 16px 18px;
+    font-size: 16px;
+    font-weight: 500;
+    text-decoration: none;
+    color: var(--text);
+    background: var(--card);
+    border: 0.5px solid var(--border);
+    border-radius: 10px;
+    transition: border-color 0.15s, background 0.15s;
+  }
+
+  .link-card:active {
+    border-color: var(--accent);
+    background: var(--accent-light);
+    color: var(--accent);
+  }
+</style>
+</head>
+<body>
+<div class="container">
+  <header>
+    <h1>Home</h1>
+  </header>
+
+  <div class="section">
+    <h2>Tools</h2>
+    <div class="link-list">
+      <a class="link-card" href="/volume/index.html">Mold investment calculator</a>
+    </div>
+  </div>
+</div>
+</body>
+</html>
