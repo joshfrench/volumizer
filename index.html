@@ -831,9 +831,10 @@
       }
       const h = parseFloat(document.getElementById('cyl-h').value) || 0;
       return Math.PI * r * r * h;
-    } else {
+    } else if (state.shape === 'handbuilt') {
       return parseFloat(document.getElementById('hb-vol').value) || 0;
     }
+    return 0;
   }
 
   const steps = document.querySelectorAll('.step');
