@@ -1138,6 +1138,8 @@
       <div class="my-recipes-list" id="my-recipes-list" style="display:none"></div>
     </div>
 
+    <p class="preset-description" id="custom-recipe-name" style="display:none"></p>
+
     <div class="recipe-rows" id="recipe-rows"></div>
 
     <button class="add-row-btn" id="add-ingredient" type="button">+ Add ingredient</button>
@@ -1358,6 +1360,10 @@
 
   function recipeMatchesAnyCustom() {
     return loadCustomRecipes().some(cr => recipesMatch(state.recipe, cr.ingredients));
+  }
+
+  function getMatchingCustomRecipe() {
+    return loadCustomRecipes().find(cr => recipesMatch(state.recipe, cr.ingredients)) || null;
   }
 
   function round(n) {
@@ -1903,6 +1909,7 @@
   }
 
   const presetDescriptionEl = document.getElementById('preset-description');
+  const customRecipeNameEl = document.getElementById('custom-recipe-name');
 
   function updatePresetHighlight() {
     let matched = null;
@@ -1913,6 +1920,9 @@
     });
     presetDescriptionEl.textContent = matched ? PRESETS[matched].description : '';
     presetDescriptionEl.style.display = matched ? '' : 'none';
+    const customMatch = matched ? null : getMatchingCustomRecipe();
+    customRecipeNameEl.textContent = customMatch ? customMatch.name : '';
+    customRecipeNameEl.style.display = customMatch ? '' : 'none';
     updateSaveButton();
   }
 
