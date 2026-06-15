@@ -33,14 +33,14 @@ header {
 }
 
 html.high-contrast {
-  --bg: #f5ede3;
-  --card: #ffffff;
-  --border: #7a5a3a;
-  --text: #1a0a00;
-  --text-secondary: #4a3020;
-  --accent: #b85200;
-  --accent-light: #fad0a0;
-  --danger: #8b0000;
+  --bg: #0f1117;
+  --card: #1a1d26;
+  --border: #2e3348;
+  --text: #e8eaf4;
+  --text-secondary: #7880a0;
+  --accent: #f4791e;
+  --accent-light: #2a1608;
+  --danger: #e55050;
 }
 
 header h1 {

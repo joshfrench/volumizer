@@ -61,12 +61,19 @@
   .field input[type="number"] {
     width: 100%;
     font-size: 17px;
-    padding: 12px 14px;
+    padding: 12px 48px 12px 14px;
     border: 1px solid var(--border);
     border-radius: 8px;
     background: var(--bg);
     color: var(--text);
     -webkit-appearance: none;
+    -moz-appearance: textfield;
+  }
+
+  .field input[type="number"]::-webkit-outer-spin-button,
+  .field input[type="number"]::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
   }
 
   .field input[type="number"]:focus {
