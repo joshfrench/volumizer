@@ -43,6 +43,16 @@ html.high-contrast {
   --danger: #e55050;
 }
 
+html.high-contrast .btn-primary:disabled {
+  background: var(--border);
+  color: var(--text-secondary);
+  opacity: 1;
+}
+
+html.high-contrast .modal-overlay {
+  background: rgba(0, 0, 0, 0.7);
+}
+
 header h1 {
   font-size: 20px;
   font-weight: 500;
