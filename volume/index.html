@@ -1561,6 +1561,17 @@
     if (e.target === saveModal) closeSaveModal();
   });
 
+  // ── Load custom recipe ────────────────────────────────────────
+  function loadCustomRecipe(key) {
+    const cr = loadCustomRecipes().find(r => r.key === key);
+    if (!cr) return;
+    state.recipe = cr.ingredients.map(i => ({ ...i }));
+    renderRecipeRows();
+    myRecipesOpen = true;
+    myRecipesArrow.textContent = '⏷';
+    myRecipesList.style.display = 'block';
+  }
+
   function setupStep4() {
     if (!recipeInitialized) {
       const defaultPreset = DEFAULT_PRESET_BY_SHAPE[state.shape] || '6040';
