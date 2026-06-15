@@ -1613,6 +1613,10 @@
     if (e.target === deleteModal) closeDeleteModal();
   });
 
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape' && deleteModal.style.display === 'flex') closeDeleteModal();
+  });
+
   function setupStep4() {
     if (!recipeInitialized) {
       const defaultPreset = DEFAULT_PRESET_BY_SHAPE[state.shape] || '6040';
@@ -1621,6 +1625,9 @@
     }
     renderRecipeRows();
     updateStep4Gutcheck();
+    myRecipesOpen = false;
+    myRecipesArrow.textContent = '⏵';
+    myRecipesList.style.display = 'none';
     updateMyRecipesSection();
   }
 
