@@ -1149,6 +1149,10 @@
   // ── Custom recipe storage ──────────────────────────────────────
   const CUSTOM_RECIPES_KEY = 'volumizer_custom_recipes';
 
+  function escapeHtml(s) {
+    return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  }
+
   function loadCustomRecipes() {
     try {
       return JSON.parse(localStorage.getItem(CUSTOM_RECIPES_KEY) || '[]');
@@ -1461,8 +1465,8 @@
   function renderMyRecipesList(recipes) {
     myRecipesList.innerHTML = recipes.map(cr => `
       <div class="my-recipe-row">
-        <span class="my-recipe-name" data-key="${cr.key}">${cr.name}</span>
-        <button class="my-recipe-delete" type="button" data-key="${cr.key}" data-name="${cr.name}">Delete</button>
+        <span class="my-recipe-name" data-key="${cr.key}">${escapeHtml(cr.name)}</span>
+        <button class="my-recipe-delete" type="button" data-key="${cr.key}" data-name="${escapeHtml(cr.name)}">Delete</button>
       </div>
     `).join('');
 
