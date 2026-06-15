@@ -1494,6 +1494,73 @@
     myRecipesList.style.display = myRecipesOpen ? 'block' : 'none';
   });
 
+  // ── Save recipe button & modal ────────────────────────────────
+  const saveRecipeBtn = document.getElementById('save-recipe-btn');
+  const saveModal = document.getElementById('save-modal');
+  const saveRecipeNameInput = document.getElementById('save-recipe-name');
+  const saveModalCancel = document.getElementById('save-modal-cancel');
+  const saveModalConfirm = document.getElementById('save-modal-confirm');
+
+  function updateSaveButton() {
+    const matchesBuiltin = Object.keys(PRESETS).some(k => recipeMatchesPreset(k));
+    const matchesCustom = recipeMatchesAnyCustom();
+    saveRecipeBtn.style.display = (matchesBuiltin || matchesCustom) ? 'none' : 'block';
+  }
+
+  function openSaveModal() {
+    const recipes = loadCustomRecipes();
+    saveRecipeNameInput.value = 'Custom mix ' + (recipes.length + 1);
+    saveModalConfirm.disabled = false;
+    saveModal.style.display = 'flex';
+    requestAnimationFrame(() => {
+      saveRecipeNameInput.select();
+      saveRecipeNameInput.focus();
+    });
+  }
+
+  function closeSaveModal() {
+    saveModal.style.display = 'none';
+  }
+
+  function commitSave(name) {
+    const recipes = loadCustomRecipes();
+    recipes.push({
+      key: String(Date.now()),
+      name: name,
+      ingredients: state.recipe.map(i => ({ ...i }))
+    });
+    saveCustomRecipes(recipes);
+    closeSaveModal();
+    updateMyRecipesSection();
+    updateSaveButton();
+  }
+
+  saveRecipeBtn.addEventListener('click', openSaveModal);
+
+  saveModalCancel.addEventListener('click', closeSaveModal);
+
+  saveModalConfirm.addEventListener('click', () => {
+    const name = saveRecipeNameInput.value.trim();
+    if (!name) return;
+    commitSave(name);
+  });
+
+  saveRecipeNameInput.addEventListener('input', () => {
+    saveModalConfirm.disabled = saveRecipeNameInput.value.trim() === '';
+  });
+
+  saveRecipeNameInput.addEventListener('keydown', e => {
+    if (e.key === 'Enter') {
+      const name = saveRecipeNameInput.value.trim();
+      if (name) commitSave(name);
+    }
+    if (e.key === 'Escape') closeSaveModal();
+  });
+
+  saveModal.addEventListener('click', e => {
+    if (e.target === saveModal) closeSaveModal();
+  });
+
   function setupStep4() {
     if (!recipeInitialized) {
       const defaultPreset = DEFAULT_PRESET_BY_SHAPE[state.shape] || '6040';
@@ -1587,6 +1654,7 @@
       if (matches) matched = btn.dataset.preset;
     });
     presetDescriptionEl.textContent = matched ? PRESETS[matched].description : '';
+    updateSaveButton();
   }
 
   presetButtons.forEach(btn => {
