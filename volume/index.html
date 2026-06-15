@@ -1451,6 +1451,45 @@
 
   let recipeInitialized = false;
 
+  // ── My recipes section ────────────────────────────────────────
+  const myRecipesSection = document.getElementById('my-recipes-section');
+  const myRecipesList = document.getElementById('my-recipes-list');
+  const myRecipesToggle = document.getElementById('my-recipes-toggle');
+  const myRecipesArrow = document.getElementById('my-recipes-arrow');
+  let myRecipesOpen = false;
+
+  function renderMyRecipesList(recipes) {
+    myRecipesList.innerHTML = recipes.map(cr => `
+      <div class="my-recipe-row">
+        <span class="my-recipe-name" data-key="${cr.key}">${cr.name}</span>
+        <button class="my-recipe-delete" type="button" data-key="${cr.key}" data-name="${cr.name}">Delete</button>
+      </div>
+    `).join('');
+
+    myRecipesList.querySelectorAll('.my-recipe-name').forEach(el => {
+      el.addEventListener('click', () => loadCustomRecipe(el.dataset.key));
+    });
+
+    myRecipesList.querySelectorAll('.my-recipe-delete').forEach(btn => {
+      btn.addEventListener('click', e => {
+        e.stopPropagation();
+        openDeleteModal(btn.dataset.key, btn.dataset.name);
+      });
+    });
+  }
+
+  function updateMyRecipesSection() {
+    const recipes = loadCustomRecipes();
+    myRecipesSection.style.display = recipes.length > 0 ? 'block' : 'none';
+    renderMyRecipesList(recipes);
+  }
+
+  myRecipesToggle.addEventListener('click', () => {
+    myRecipesOpen = !myRecipesOpen;
+    myRecipesArrow.textContent = myRecipesOpen ? '⏷' : '⏵';
+    myRecipesList.style.display = myRecipesOpen ? 'block' : 'none';
+  });
+
   function setupStep4() {
     if (!recipeInitialized) {
       const defaultPreset = DEFAULT_PRESET_BY_SHAPE[state.shape] || '6040';
