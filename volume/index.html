@@ -508,6 +508,33 @@
     flex-shrink: 0;
   }
 
+  .timer-btn .timer-icon {
+    flex-shrink: 0;
+    width: 36px;
+    height: 36px;
+    border: 1.5px solid var(--text-secondary);
+    border-radius: 8px;
+    color: var(--text-secondary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .timer-btn .timer-icon svg {
+    width: 18px;
+    height: 18px;
+  }
+
+  .timer-btn.running .timer-icon {
+    color: var(--accent);
+    border-color: var(--accent);
+  }
+
+  .timer-btn.done .timer-icon {
+    color: white;
+    border-color: rgba(255, 255, 255, 0.7);
+  }
+
   .timer-btn.running {
     border-color: var(--accent);
     background: var(--accent-light);
@@ -1189,6 +1216,7 @@
             <span class="timer-desc">Sprinkle dry into water, let sit</span>
           </span>
           <span class="timer-display">3:00</span>
+          <span class="timer-icon" aria-hidden="true"></span>
         </button>
         <button class="timer-btn" id="mix-timer" data-seconds="180" type="button">
           <span class="timer-info">
@@ -1196,6 +1224,7 @@
             <span class="timer-desc">Stir to a smooth consistency</span>
           </span>
           <span class="timer-display">3:00</span>
+          <span class="timer-icon" aria-hidden="true"></span>
         </button>
       </div>
     </div>
@@ -1726,7 +1755,7 @@
     saveCustomRecipes(recipes);
     closeSaveModal();
     updateMyRecipesSection();
-    updateSaveButton();
+    updatePresetHighlight();
   }
 
   saveRecipeBtn.addEventListener('click', openSaveModal);
@@ -1794,7 +1823,7 @@
       myRecipesList.style.display = 'none';
     }
     updateMyRecipesSection();
-    updateSaveButton();
+    updatePresetHighlight();
   }
 
   deleteModalCancel.addEventListener('click', closeDeleteModal);
@@ -1995,11 +2024,18 @@
   // Timers
   const timerStops = [];
 
+  const ICON_PLAY  = `<svg viewBox="0 0 16 16" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><path d="M3 2.5v11l10-5.5z"/></svg>`;
+  const ICON_STOP  = `<svg viewBox="0 0 16 16" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><rect x="3" y="3" width="10" height="10" rx="1.5"/></svg>`;
+  const ICON_CHECK = `<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg"><path d="M2 8.5l3.5 3.5 8-8"/></svg>`;
+
   function setupTimer(btn) {
     const totalSeconds = parseInt(btn.dataset.seconds, 10);
     const display = btn.querySelector('.timer-display');
+    const icon = btn.querySelector('.timer-icon');
     let remaining = totalSeconds;
     let intervalId = null;
+
+    icon.innerHTML = ICON_PLAY;
 
     function formatTime(s) {
       const m = Math.floor(s / 60);
@@ -2016,6 +2052,7 @@
         intervalId = null;
         btn.classList.remove('running');
         btn.classList.add('done');
+        icon.innerHTML = ICON_CHECK;
         if (navigator.vibrate) navigator.vibrate([200, 100, 200]);
       } else {
         display.textContent = formatTime(remaining);
@@ -2029,11 +2066,13 @@
         btn.classList.remove('running');
         remaining = totalSeconds;
         display.textContent = formatTime(remaining);
+        icon.innerHTML = ICON_PLAY;
       } else {
         btn.classList.remove('done');
         btn.classList.add('running');
         remaining = totalSeconds;
         display.textContent = formatTime(remaining);
+        icon.innerHTML = ICON_STOP;
         intervalId = setInterval(tick, 1000);
       }
     });
