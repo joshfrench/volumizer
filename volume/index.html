@@ -2174,11 +2174,14 @@
   const settingsDone = document.getElementById('settings-done');
   const settingsUnitMetric = document.getElementById('settings-unit-metric');
   const settingsUnitImperial = document.getElementById('settings-unit-imperial');
+  const precisionToggle = document.getElementById('precision-toggle');
   const hcToggle = document.getElementById('hc-toggle');
 
   function openSettingsModal() {
     settingsUnitMetric.classList.toggle('selected', settings.units === 'metric');
     settingsUnitImperial.classList.toggle('selected', settings.units === 'imperial');
+    precisionToggle.classList.toggle('on', settings.precisionMode);
+    precisionToggle.setAttribute('aria-pressed', String(settings.precisionMode));
     hcToggle.classList.toggle('on', settings.highContrast);
     hcToggle.setAttribute('aria-pressed', String(settings.highContrast));
     settingsModal.style.display = 'flex';
@@ -2213,6 +2216,14 @@
     settingsUnitMetric.classList.remove('selected');
     saveAppSettings();
     refreshAfterUnitChange(prev);
+  });
+
+  precisionToggle.addEventListener('click', () => {
+    settings.precisionMode = !settings.precisionMode;
+    precisionToggle.classList.toggle('on', settings.precisionMode);
+    precisionToggle.setAttribute('aria-pressed', String(settings.precisionMode));
+    saveAppSettings();
+    if (document.getElementById('step-results').classList.contains('active')) calculateAndShowResults();
   });
 
   hcToggle.addEventListener('click', () => {
