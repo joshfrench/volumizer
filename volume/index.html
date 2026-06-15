@@ -1387,6 +1387,11 @@
   function volUnit() {
     return settings.units === 'imperial' ? 'in³' : 'cm³';
   }
+  function fmtWeight(w) {
+    return settings.precisionMode
+      ? round(w) + ' g'
+      : '~' + Math.round(w) + ' g';
+  }
   function fmtVol(cm3) {
     return settings.units === 'imperial'
       ? (Math.round(cm3 / IN3_PER_CM3 * 10) / 10) + ' in³'
@@ -2155,7 +2160,7 @@
     breakdown.innerHTML = ingredients.map(ing => `
       <div class="breakdown-row" data-ingredient="${escapeHtml(ing.name)}">
         <span class="name"><span class="check-icon"></span>${escapeHtml(ing.name)}</span>
-        <span class="amount">${round(ing.weight)} g</span>
+        <span class="amount">${fmtWeight(ing.weight)}</span>
       </div>
     `).join('');
 
