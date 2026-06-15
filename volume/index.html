@@ -797,6 +797,43 @@
   }
 
   /* ── Save recipe button ────────────────────────────────────────── */
+  .step-heading-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 1rem;
+  }
+
+  .step-heading-row h2 {
+    margin: 0;
+    flex: 1;
+  }
+
+  .help-btn {
+    flex-shrink: 0;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    border: 1.5px solid var(--border);
+    background: var(--bg);
+    color: var(--text-secondary);
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    -webkit-appearance: none;
+    padding: 0;
+    line-height: 1;
+  }
+
+  .help-btn.open {
+    border-color: var(--accent);
+    color: var(--accent);
+    background: var(--accent-light);
+  }
+
   .save-recipe-btn {
     width: 100%;
     padding: 12px;
@@ -955,16 +992,19 @@
     </div>
   </div>
 
-  <!-- Step 3: Pattern subtraction -->
+  <!-- Step 3: Model subtraction -->
   <div class="step" data-step="3">
-    <h2>Subtract a pattern?</h2>
-    <p class="step-note">
-      If there's a pattern inside the cottle, subtract its volume from the total.
+    <div class="step-heading-row">
+      <h2>Subtract model volume?</h2>
+      <button class="help-btn" id="model-help-btn" type="button" aria-label="What is a model?">?</button>
+    </div>
+    <p class="step-note" id="model-help-note" style="display:none">
+      The model (also called the pattern) is the original object inside the cottle. Subtract its volume so you don't over-mix.
     </p>
 
     <div class="toggle-row">
-      <label for="pattern-toggle">Subtract pattern volume</label>
-      <button class="switch-btn" id="pattern-toggle" type="button" aria-label="Subtract pattern volume" aria-pressed="false"></button>
+      <label for="pattern-toggle">Yes, enter volume to be subtracted</label>
+      <button class="switch-btn" id="pattern-toggle" type="button" aria-label="Yes, enter volume to be subtracted" aria-pressed="false"></button>
     </div>
 
     <div class="pattern-options" id="pattern-options">
@@ -975,7 +1015,7 @@
 
       <div class="pattern-sub visible" id="pattern-volume-sub">
         <div class="field">
-          <label for="pattern-vol">Pattern volume</label>
+          <label for="pattern-vol">Model volume</label>
           <div class="unit-suffix">
             <input type="number" inputmode="decimal" id="pattern-vol" placeholder="0" min="0" step="0.1">
             <span>cm³</span>
@@ -985,7 +1025,7 @@
 
       <div class="pattern-sub" id="pattern-weight-sub">
         <div class="field">
-          <label for="pattern-weight">Pattern weight</label>
+          <label for="pattern-weight">Model weight</label>
           <div class="unit-suffix">
             <input type="number" inputmode="decimal" id="pattern-weight" placeholder="0" min="0" step="0.1">
             <span>g</span>
@@ -1003,7 +1043,7 @@
         <span class="gc-value" id="gc-step3-cottle">—</span>
       </div>
       <div class="gut-check-row" id="gc-step3-pattern-row">
-        <span>Pattern volume</span>
+        <span>Model volume</span>
         <span class="gc-value" id="gc-step3-pattern">—</span>
       </div>
       <div class="gut-check-row" id="gc-step3-net-row">
@@ -1020,8 +1060,11 @@
 
   <!-- Step 4: Recipe -->
   <div class="step" data-step="4">
-    <h2>Your recipe</h2>
-    <p class="step-note">
+    <div class="step-heading-row">
+      <h2>Your recipe</h2>
+      <button class="help-btn" id="recipe-help-btn" type="button" aria-label="What are parts?">?</button>
+    </div>
+    <p class="step-note recipe-help-note" id="recipe-help-note" style="display:none">
       How much of each ingredient, relative to water? Water is always 1 part — everything else is measured against it.
     </p>
 
@@ -1048,7 +1091,7 @@
         <span class="gc-value" id="gc-step4-cottle">—</span>
       </div>
       <div class="gut-check-row" id="gc-step4-pattern-row">
-        <span>Pattern volume</span>
+        <span>Model volume</span>
         <span class="gc-value" id="gc-step4-pattern">—</span>
       </div>
       <div class="gut-check-row" id="gc-step4-net-row">
@@ -1149,6 +1192,7 @@
 
   // ── Custom recipe storage ──────────────────────────────────────
   const CUSTOM_RECIPES_KEY = 'volumizer_custom_recipes';
+  const LAST_RECIPE_KEY = 'volumizer_last_recipe';
 
   function escapeHtml(s) {
     return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
@@ -1620,8 +1664,18 @@
 
   function setupStep4() {
     if (!recipeInitialized) {
-      const defaultPreset = DEFAULT_PRESET_BY_SHAPE[state.shape] || '6040';
-      state.recipe = PRESETS[defaultPreset].ingredients.map(i => ({ ...i }));
+      try {
+        const saved = JSON.parse(localStorage.getItem(LAST_RECIPE_KEY));
+        if (saved && saved.length > 0) {
+          state.recipe = saved;
+        } else {
+          const defaultPreset = DEFAULT_PRESET_BY_SHAPE[state.shape] || '6040';
+          state.recipe = PRESETS[defaultPreset].ingredients.map(i => ({ ...i }));
+        }
+      } catch (e) {
+        const defaultPreset = DEFAULT_PRESET_BY_SHAPE[state.shape] || '6040';
+        state.recipe = PRESETS[defaultPreset].ingredients.map(i => ({ ...i }));
+      }
       recipeInitialized = true;
     }
     renderRecipeRows();
@@ -1755,9 +1809,26 @@
     step4Gutcheck.classList.add('visible');
   }
 
+  const modelHelpBtn = document.getElementById('model-help-btn');
+  const modelHelpNote = document.getElementById('model-help-note');
+  modelHelpBtn.addEventListener('click', () => {
+    const open = modelHelpNote.style.display === 'none';
+    modelHelpNote.style.display = open ? '' : 'none';
+    modelHelpBtn.classList.toggle('open', open);
+  });
+
+  const recipeHelpBtn = document.getElementById('recipe-help-btn');
+  const recipeHelpNote = document.getElementById('recipe-help-note');
+  recipeHelpBtn.addEventListener('click', () => {
+    const open = recipeHelpNote.style.display === 'none';
+    recipeHelpNote.style.display = open ? '' : 'none';
+    recipeHelpBtn.classList.toggle('open', open);
+  });
+
   back4.addEventListener('click', () => showStep(3));
 
   next4.addEventListener('click', () => {
+    localStorage.setItem(LAST_RECIPE_KEY, JSON.stringify(state.recipe));
     calculateAndShowResults();
     showStep(5);
   });
@@ -1853,7 +1924,7 @@
     volHtml += `<div class="result-card"><div class="label">Cottle volume</div><div class="value">${round(cottleVolume)} <span class="unit">cm³</span></div></div>`;
 
     if (state.patternEnabled && patternVol > 0) {
-      volHtml += `<div class="result-card"><div class="label">Pattern volume</div><div class="value">${round(patternVol)} <span class="unit">cm³</span></div></div>`;
+      volHtml += `<div class="result-card"><div class="label">Model volume</div><div class="value">${round(patternVol)} <span class="unit">cm³</span></div></div>`;
       volHtml += `<div class="result-card highlight full"><div class="label">Net volume</div><div class="value">${round(netVolume)} <span class="unit">cm³</span></div></div>`;
     } else {
       volHtml += `<div class="result-card highlight"><div class="label">Net volume</div><div class="value">${round(netVolume)} <span class="unit">cm³</span></div></div>`;
