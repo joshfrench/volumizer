@@ -1915,16 +1915,12 @@
       partsInput.type = 'number';
       partsInput.inputMode = 'decimal';
       partsInput.min = '0';
-      partsInput.step = '0.01';
+      partsInput.step = '0.1';
       partsInput.value = ing.parts;
-      if (idx === 0) {
-        partsInput.disabled = true;
-      } else {
-        partsInput.addEventListener('input', () => {
-          ing.parts = parseFloat(partsInput.value) || 0;
-          updatePresetHighlight();
-        });
-      }
+      partsInput.addEventListener('input', () => {
+        ing.parts = parseFloat(partsInput.value) || 0;
+        updatePresetHighlight();
+      });
       const partsLabel = document.createElement('span');
       partsLabel.textContent = 'parts';
       partsWrap.appendChild(partsInput);
