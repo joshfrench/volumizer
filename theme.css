@@ -34,12 +34,12 @@ header {
 
 html.high-contrast {
   --bg: #0f1117;
-  --card: #1a1d26;
-  --border: #2e3348;
+  --card: #282e46;
+  --border: #3d4468;
   --text: #e8eaf4;
   --text-secondary: #7880a0;
   --accent: #f4791e;
-  --accent-light: #2a1608;
+  --accent-light: rgba(244, 121, 30, 0.45);
   --danger: #e55050;
 }
 
@@ -51,6 +51,12 @@ html.high-contrast .btn-primary:disabled {
 
 html.high-contrast .modal-overlay {
   background: rgba(0, 0, 0, 0.7);
+}
+
+html.high-contrast .shape-btn {
+  background: #313a62;
+  border-color: #4a5480;
+  box-shadow: none;
 }
 
 header h1 {
