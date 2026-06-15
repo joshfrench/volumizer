@@ -1236,7 +1236,7 @@
   </div>
 
   <!-- Step 4: Results -->
-  <div class="step" data-step="4">
+  <div class="step" data-step="4" id="step-results">
     <h2>Your mix</h2>
     <div class="ratio-badge" id="ratio-label"></div>
 
@@ -1418,7 +1418,7 @@
     updatePatternGutcheck();
     updateStep4Gutcheck();
     const active = document.querySelector('.step.active');
-    if (active && active.dataset.step === '5') calculateAndShowResults();
+    if (document.getElementById('step-results').classList.contains('active')) calculateAndShowResults();
   }
 
   function recipesMatch(a, b) {
@@ -1429,13 +1429,6 @@
     );
   }
 
-  function recipeMatchesAnyCustom() {
-    return loadCustomRecipes().some(cr => recipesMatch(state.recipe, cr.ingredients));
-  }
-
-  function getMatchingCustomRecipe() {
-    return loadCustomRecipes().find(cr => recipesMatch(state.recipe, cr.ingredients)) || null;
-  }
 
   function round(n) {
     return Math.round(n * 10) / 10;
@@ -1485,6 +1478,7 @@
     btn.addEventListener('click', () => {
       shapeButtons.forEach(b => b.classList.remove('selected'));
       btn.classList.add('selected');
+      if (state.shape !== btn.dataset.shape) recipeInitialized = false;
       state.shape = btn.dataset.shape;
       setupStep2();
       showStep(2);
@@ -1750,11 +1744,6 @@
   const saveModalCancel = document.getElementById('save-modal-cancel');
   const saveModalConfirm = document.getElementById('save-modal-confirm');
 
-  function updateSaveButton() {
-    const matchesBuiltin = Object.keys(PRESETS).some(k => recipeMatchesPreset(k));
-    const matchesCustom = recipeMatchesAnyCustom();
-    saveRecipeBtn.style.display = (matchesBuiltin || matchesCustom) ? 'none' : 'block';
-  }
 
   function openSaveModal() {
     const recipes = loadCustomRecipes();
@@ -1963,6 +1952,7 @@
   const customRecipeNameEl = document.getElementById('custom-recipe-name');
 
   function updatePresetHighlight() {
+    const customRecipes = loadCustomRecipes();
     let matched = null;
     presetButtons.forEach(btn => {
       const matches = recipeMatchesPreset(btn.dataset.preset);
@@ -1971,10 +1961,10 @@
     });
     presetDescriptionEl.textContent = matched ? PRESETS[matched].description : '';
     presetDescriptionEl.style.display = matched ? '' : 'none';
-    const customMatch = matched ? null : getMatchingCustomRecipe();
+    const customMatch = matched ? null : customRecipes.find(cr => recipesMatch(state.recipe, cr.ingredients)) || null;
     customRecipeNameEl.textContent = customMatch ? customMatch.name : '';
     customRecipeNameEl.style.display = customMatch ? '' : 'none';
-    updateSaveButton();
+    saveRecipeBtn.style.display = (matched !== null || customMatch !== null) ? 'none' : 'block';
   }
 
   presetButtons.forEach(btn => {
@@ -2033,7 +2023,10 @@
   const back5 = document.getElementById('back5');
   const restart = document.getElementById('restart');
 
-  back5.addEventListener('click', () => showStep(3));
+  back5.addEventListener('click', () => {
+    timerStops.forEach(reset => reset());
+    showStep(3);
+  });
 
   restart.addEventListener('click', () => {
     timerStops.forEach(stop => stop());
@@ -2096,12 +2089,18 @@
       }
     });
 
-    timerStops.push(() => {
+    function reset() {
       if (intervalId) {
         clearInterval(intervalId);
         intervalId = null;
       }
-    });
+      btn.classList.remove('running', 'done');
+      remaining = totalSeconds;
+      display.textContent = formatTime(remaining);
+      icon.innerHTML = ICON_PLAY;
+    }
+
+    timerStops.push(reset);
   }
 
   setupTimer(document.getElementById('slake-timer'));
@@ -2114,9 +2113,10 @@
     const netVolume = Math.max(0, cottleVolume - patternVol);
 
     const waterWeight = netVolume * WATER_RATIO;
+    const waterParts = state.recipe.length > 0 ? (state.recipe[0].parts || 1) : 1;
 
     const ingredients = state.recipe
-      .map(ing => ({ name: ing.name.trim() || 'Ingredient', parts: ing.parts, weight: waterWeight * ing.parts }))
+      .map(ing => ({ name: ing.name.trim() || 'Ingredient', parts: ing.parts, weight: waterWeight * (ing.parts / waterParts) }))
       .filter(ing => ing.parts > 0);
 
     const ratioLabel = 'Ratio ' + state.recipe.map(ing => round(ing.parts)).join(' : ') +
@@ -2140,8 +2140,8 @@
 
     const breakdown = document.getElementById('breakdown-list');
     breakdown.innerHTML = ingredients.map(ing => `
-      <div class="breakdown-row" data-ingredient="${ing.name}">
-        <span class="name"><span class="check-icon"></span>${ing.name}</span>
+      <div class="breakdown-row" data-ingredient="${escapeHtml(ing.name)}">
+        <span class="name"><span class="check-icon"></span>${escapeHtml(ing.name)}</span>
         <span class="amount">${round(ing.weight)} g</span>
       </div>
     `).join('');
