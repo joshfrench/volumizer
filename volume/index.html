@@ -1372,7 +1372,7 @@
   function saveAppSettings() {
     localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
   }
-  const settings = Object.assign({ units: 'metric', highContrast: false }, loadAppSettings());
+  const settings = Object.assign({ units: 'metric', highContrast: false, precisionMode: false }, loadAppSettings());
 
   function applyHighContrast() {
     document.documentElement.classList.toggle('high-contrast', settings.highContrast);
