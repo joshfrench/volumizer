@@ -1091,6 +1091,30 @@
       <button class="btn btn-primary" id="restart">Start over</button>
     </div>
   </div>
+
+  <!-- Save recipe modal -->
+  <div class="modal-overlay" id="save-modal" style="display:none" role="dialog" aria-modal="true" aria-labelledby="save-modal-title">
+    <div class="modal-card">
+      <h3 id="save-modal-title">Save recipe</h3>
+      <input class="modal-input" id="save-recipe-name" type="text" placeholder="Recipe name">
+      <div class="modal-btns">
+        <button class="btn btn-secondary" id="save-modal-cancel" type="button">Cancel</button>
+        <button class="btn btn-primary" id="save-modal-confirm" type="button">Save</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Delete recipe modal -->
+  <div class="modal-overlay" id="delete-modal" style="display:none" role="dialog" aria-modal="true" aria-labelledby="delete-modal-title">
+    <div class="modal-card">
+      <h3 id="delete-modal-title">Delete recipe?</h3>
+      <p class="modal-msg" id="delete-modal-msg"></p>
+      <div class="modal-btns">
+        <button class="btn btn-secondary" id="delete-modal-cancel" type="button">Cancel</button>
+        <button class="btn-danger" id="delete-modal-confirm" type="button">Delete</button>
+      </div>
+    </div>
+  </div>
 </div>
 
 <script src="recipes.js"></script>
