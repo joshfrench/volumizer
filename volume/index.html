@@ -1007,7 +1007,6 @@
     <div class="progress-dot" data-step="2"></div>
     <div class="progress-dot" data-step="3"></div>
     <div class="progress-dot" data-step="4"></div>
-    <div class="progress-dot" data-step="5"></div>
   </div>
 
   <!-- Step 1: Shape selection -->
@@ -1125,18 +1124,18 @@
         <span>Cottle volume</span>
         <span class="gc-value" id="gc-cottle-volume">—</span>
       </div>
+      <div class="gut-check-row" id="gc-step2-pattern-row" style="display:none">
+        <span>Model volume</span>
+        <span class="gc-value" id="gc-step2-pattern">—</span>
+      </div>
+      <div class="gut-check-row" id="gc-step2-net-row" style="display:none">
+        <span>Net volume</span>
+        <span class="gc-value" id="gc-step2-net">—</span>
+      </div>
     </div>
 
-    <div class="nav-buttons">
-      <button class="btn btn-secondary" id="back2">Back</button>
-      <button class="btn btn-primary" id="next2" disabled>Next</button>
-    </div>
-  </div>
-
-  <!-- Step 3: Model subtraction -->
-  <div class="step" data-step="3">
-    <div class="step-heading-row">
-      <h2>Subtract model volume?</h2>
+    <div class="step-heading-row" style="margin-top: 1.25rem;">
+      <span style="font-size: 15px; color: var(--text);">Subtract model volume?</span>
       <button class="switch-btn" id="pattern-toggle" type="button" aria-label="Subtract model volume" aria-pressed="false"></button>
     </div>
 
@@ -1173,29 +1172,14 @@
       </div>
     </div>
 
-    <div class="gut-check" id="step3-gutcheck">
-      <div class="gut-check-row">
-        <span>Cottle volume</span>
-        <span class="gc-value" id="gc-step3-cottle">—</span>
-      </div>
-      <div class="gut-check-row" id="gc-step3-pattern-row">
-        <span>Model volume</span>
-        <span class="gc-value" id="gc-step3-pattern">—</span>
-      </div>
-      <div class="gut-check-row" id="gc-step3-net-row">
-        <span>Net volume</span>
-        <span class="gc-value" id="gc-step3-net">—</span>
-      </div>
-    </div>
-
     <div class="nav-buttons">
-      <button class="btn btn-secondary" id="back3">Back</button>
-      <button class="btn btn-primary" id="next3">Skip</button>
+      <button class="btn btn-secondary" id="back2">Back</button>
+      <button class="btn btn-primary" id="next2" disabled>Next</button>
     </div>
   </div>
 
-  <!-- Step 4: Recipe -->
-  <div class="step" data-step="4">
+  <!-- Step 3: Recipe -->
+  <div class="step" data-step="3">
     <div class="step-heading-row">
       <h2>Your recipe</h2>
       <button class="help-btn" id="recipe-help-btn" type="button" aria-label="What are parts?">?</button>
@@ -1244,8 +1228,8 @@
     </div>
   </div>
 
-  <!-- Step 5: Results -->
-  <div class="step" data-step="5">
+  <!-- Step 4: Results -->
+  <div class="step" data-step="4">
     <h2>Your mix</h2>
     <div class="ratio-badge" id="ratio-label"></div>
 
@@ -1424,7 +1408,7 @@
     if (prevUnits !== settings.units) convertInputValues(prevUnits);
     updateUnitLabels();
     validateStep2();
-    updateStep3Gutcheck();
+    updatePatternGutcheck();
     updateStep4Gutcheck();
     const active = document.querySelector('.step.active');
     if (active && active.dataset.step === '5') calculateAndShowResults();
@@ -1608,26 +1592,31 @@
   back2.addEventListener('click', () => showStep(1));
 
   next2.addEventListener('click', () => {
-    next3.textContent = state.patternEnabled ? 'Next' : 'Skip';
+    if (state.patternEnabled) {
+      if (state.patternMode === 'volume') {
+        state.patternVol = getPatternVolume();
+      } else {
+        state.patternWeight = parseFloat(document.getElementById('pattern-weight').value) || 0;
+        state.patternVol = state.patternWeight / WAX_SG;
+      }
+    } else {
+      state.patternVol = 0;
+    }
+    setupStep4();
     showStep(3);
-    updateStep3Gutcheck();
   });
 
-  // Step 3: pattern subtraction
+  // Pattern subtraction (now part of step 2)
   const patternToggle = document.getElementById('pattern-toggle');
   const patternOptions = document.getElementById('pattern-options');
   const pillButtons = document.querySelectorAll('.pill-btn');
   const patternVolumeSub = document.getElementById('pattern-volume-sub');
   const patternWeightSub = document.getElementById('pattern-weight-sub');
-  const back3 = document.getElementById('back3');
-  const next3 = document.getElementById('next3');
 
-  const step3Gutcheck = document.getElementById('step3-gutcheck');
-  const gcStep3Cottle = document.getElementById('gc-step3-cottle');
-  const gcStep3Pattern = document.getElementById('gc-step3-pattern');
-  const gcStep3Net = document.getElementById('gc-step3-net');
-  const gcStep3PatternRow = document.getElementById('gc-step3-pattern-row');
-  const gcStep3NetRow = document.getElementById('gc-step3-net-row');
+  const gcStep2PatternRow = document.getElementById('gc-step2-pattern-row');
+  const gcStep2NetRow = document.getElementById('gc-step2-net-row');
+  const gcStep2Pattern = document.getElementById('gc-step2-pattern');
+  const gcStep2Net = document.getElementById('gc-step2-net');
 
   function getPatternVolume() {
     if (!state.patternEnabled) return 0;
@@ -1640,22 +1629,19 @@
     }
   }
 
-  function updateStep3Gutcheck() {
-    const cottleVol = getCottleVolume();
-    gcStep3Cottle.textContent = fmtVol(cottleVol);
-
+  function updatePatternGutcheck() {
     if (state.patternEnabled) {
+      const cottleVol = getCottleVolume();
       const patternVol = getPatternVolume();
       const netVol = Math.max(0, cottleVol - patternVol);
-      gcStep3Pattern.textContent = fmtVol(patternVol);
-      gcStep3Net.textContent = fmtVol(netVol);
-      gcStep3PatternRow.style.display = 'flex';
-      gcStep3NetRow.style.display = 'flex';
+      gcStep2Pattern.textContent = fmtVol(patternVol);
+      gcStep2Net.textContent = fmtVol(netVol);
+      gcStep2PatternRow.style.display = 'flex';
+      gcStep2NetRow.style.display = 'flex';
     } else {
-      gcStep3PatternRow.style.display = 'none';
-      gcStep3NetRow.style.display = 'none';
+      gcStep2PatternRow.style.display = 'none';
+      gcStep2NetRow.style.display = 'none';
     }
-    step3Gutcheck.classList.add('visible');
   }
 
   patternToggle.addEventListener('click', () => {
@@ -1663,19 +1649,18 @@
     patternToggle.classList.toggle('on', state.patternEnabled);
     patternToggle.setAttribute('aria-pressed', String(state.patternEnabled));
     patternOptions.classList.toggle('visible', state.patternEnabled);
-    next3.textContent = state.patternEnabled ? 'Next' : 'Skip';
     if (!state.patternEnabled) {
       state.patternVol = 0;
       state.patternWeight = 0;
     }
-    updateStep3Gutcheck();
+    updatePatternGutcheck();
     if (state.patternEnabled) {
       focusField(state.patternMode === 'volume' ? 'pattern-vol' : 'pattern-weight');
     }
   });
 
   ['pattern-vol', 'pattern-weight'].forEach(id => {
-    document.getElementById(id).addEventListener('input', updateStep3Gutcheck);
+    document.getElementById(id).addEventListener('input', updatePatternGutcheck);
   });
 
   pillButtons.forEach(btn => {
@@ -1685,29 +1670,12 @@
       state.patternMode = btn.dataset.mode;
       patternVolumeSub.classList.toggle('visible', state.patternMode === 'volume');
       patternWeightSub.classList.toggle('visible', state.patternMode === 'weight');
-      updateStep3Gutcheck();
+      updatePatternGutcheck();
       focusField(state.patternMode === 'volume' ? 'pattern-vol' : 'pattern-weight');
     });
   });
 
-  back3.addEventListener('click', () => showStep(2));
-
-  next3.addEventListener('click', () => {
-    if (state.patternEnabled) {
-      if (state.patternMode === 'volume') {
-        state.patternVol = getPatternVolume();
-      } else {
-        state.patternWeight = parseFloat(document.getElementById('pattern-weight').value) || 0;
-        state.patternVol = state.patternWeight / WAX_SG;
-      }
-    } else {
-      state.patternVol = 0;
-    }
-    setupStep4();
-    showStep(4);
-  });
-
-  // Step 4: recipe
+  // Step 3: recipe
   const back4 = document.getElementById('back4');
   const next4 = document.getElementById('next4');
   const recipeRowsEl = document.getElementById('recipe-rows');
@@ -2050,22 +2018,19 @@
     recipeHelpBtn.classList.toggle('open', open);
   });
 
-  back4.addEventListener('click', () => {
-    next3.textContent = state.patternEnabled ? 'Next' : 'Skip';
-    showStep(3);
-  });
+  back4.addEventListener('click', () => showStep(2));
 
   next4.addEventListener('click', () => {
     localStorage.setItem(LAST_RECIPE_KEY, JSON.stringify(state.recipe));
     calculateAndShowResults();
-    showStep(5);
+    showStep(4);
   });
 
   // Step 5: results
   const back5 = document.getElementById('back5');
   const restart = document.getElementById('restart');
 
-  back5.addEventListener('click', () => showStep(4));
+  back5.addEventListener('click', () => showStep(3));
 
   restart.addEventListener('click', () => {
     timerStops.forEach(stop => stop());
