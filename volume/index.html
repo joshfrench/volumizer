@@ -1572,6 +1572,47 @@
     myRecipesList.style.display = 'block';
   }
 
+  // ── Delete modal ──────────────────────────────────────────────
+  const deleteModal = document.getElementById('delete-modal');
+  const deleteModalMsg = document.getElementById('delete-modal-msg');
+  const deleteModalCancel = document.getElementById('delete-modal-cancel');
+  const deleteModalConfirm = document.getElementById('delete-modal-confirm');
+  let pendingDeleteKey = null;
+
+  function openDeleteModal(key, name) {
+    pendingDeleteKey = key;
+    deleteModalMsg.textContent = '"' + name + '" will be permanently removed.';
+    deleteModal.style.display = 'flex';
+  }
+
+  function closeDeleteModal() {
+    deleteModal.style.display = 'none';
+    pendingDeleteKey = null;
+  }
+
+  function commitDelete(key) {
+    const recipes = loadCustomRecipes().filter(r => r.key !== key);
+    saveCustomRecipes(recipes);
+    closeDeleteModal();
+    if (recipes.length === 0) {
+      myRecipesOpen = false;
+      myRecipesArrow.textContent = '⏵';
+      myRecipesList.style.display = 'none';
+    }
+    updateMyRecipesSection();
+    updateSaveButton();
+  }
+
+  deleteModalCancel.addEventListener('click', closeDeleteModal);
+
+  deleteModalConfirm.addEventListener('click', () => {
+    if (pendingDeleteKey) commitDelete(pendingDeleteKey);
+  });
+
+  deleteModal.addEventListener('click', e => {
+    if (e.target === deleteModal) closeDeleteModal();
+  });
+
   function setupStep4() {
     if (!recipeInitialized) {
       const defaultPreset = DEFAULT_PRESET_BY_SHAPE[state.shape] || '6040';
