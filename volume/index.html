@@ -669,8 +669,57 @@
     z-index: 100;
   }
 
+  .settings-btn {
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: none;
+    background: none;
+    color: var(--text-secondary);
+    cursor: pointer;
+    -webkit-appearance: none;
+    padding: 0;
+  }
+
+  .settings-btn svg {
+    width: 20px;
+    height: 20px;
+  }
+
+  .settings-btn:active {
+    color: var(--accent);
+  }
+
+  .settings-unit-toggle {
+    display: flex;
+    gap: 6px;
+  }
+
+  .settings-unit-btn {
+    padding: 6px 14px;
+    font-size: 14px;
+    font-weight: 500;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: var(--bg);
+    color: var(--text-secondary);
+    cursor: pointer;
+    -webkit-appearance: none;
+  }
+
+  .settings-unit-btn.selected {
+    border-color: var(--accent);
+    background: var(--accent-light);
+    color: var(--accent);
+  }
+
   .modal-card {
-    background: white;
+    background: var(--card);
     border-radius: 14px;
     padding: 20px;
     width: 100%;
@@ -841,7 +890,7 @@
     font-weight: 500;
     border: 1.5px solid var(--accent);
     border-radius: 8px;
-    background: white;
+    background: var(--card);
     color: var(--accent);
     cursor: pointer;
     margin-top: 1rem;
@@ -859,6 +908,12 @@
   <header>
     <h1>Mold investment calculator</h1>
     <p>Calculate volume and get your mix recipe</p>
+    <button class="settings-btn" id="settings-btn" type="button" aria-label="Settings">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="3"/>
+        <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+      </svg>
+    </button>
   </header>
 
   <div class="progress">
@@ -922,21 +977,21 @@
         <label for="box-l">Length</label>
         <div class="unit-suffix">
           <input type="number" inputmode="decimal" id="box-l" placeholder="0" min="0" step="0.1">
-          <span>cm</span>
+          <span class="unit-label-len">cm</span>
         </div>
       </div>
       <div class="field">
         <label for="box-w">Width</label>
         <div class="unit-suffix">
           <input type="number" inputmode="decimal" id="box-w" placeholder="0" min="0" step="0.1">
-          <span>cm</span>
+          <span class="unit-label-len">cm</span>
         </div>
       </div>
       <div class="field">
         <label for="box-h">Height</label>
         <div class="unit-suffix">
           <input type="number" inputmode="decimal" id="box-h" placeholder="0" min="0" step="0.1">
-          <span>cm</span>
+          <span class="unit-label-len">cm</span>
         </div>
       </div>
     </div>
@@ -950,21 +1005,21 @@
         <label for="cyl-r">Radius</label>
         <div class="unit-suffix">
           <input type="number" inputmode="decimal" id="cyl-r" placeholder="0" min="0" step="0.1">
-          <span>cm</span>
+          <span class="unit-label-len">cm</span>
         </div>
       </div>
       <div class="field dim-field" id="cyl-diameter-field">
         <label for="cyl-d">Diameter</label>
         <div class="unit-suffix">
           <input type="number" inputmode="decimal" id="cyl-d" placeholder="0" min="0" step="0.1">
-          <span>cm</span>
+          <span class="unit-label-len">cm</span>
         </div>
       </div>
       <div class="field">
         <label for="cyl-h">Height</label>
         <div class="unit-suffix">
           <input type="number" inputmode="decimal" id="cyl-h" placeholder="0" min="0" step="0.1">
-          <span>cm</span>
+          <span class="unit-label-len">cm</span>
         </div>
       </div>
     </div>
@@ -974,7 +1029,7 @@
         <label for="hb-vol">Estimated volume</label>
         <div class="unit-suffix">
           <input type="number" inputmode="decimal" id="hb-vol" placeholder="0" min="0" step="0.1">
-          <span>cm³</span>
+          <span class="unit-label-vol">cm³</span>
         </div>
       </div>
     </div>
@@ -996,18 +1051,13 @@
   <div class="step" data-step="3">
     <div class="step-heading-row">
       <h2>Subtract model volume?</h2>
-      <button class="help-btn" id="model-help-btn" type="button" aria-label="What is a model?">?</button>
-    </div>
-    <p class="step-note" id="model-help-note" style="display:none">
-      The model (also called the pattern) is the original object inside the cottle. Subtract its volume so you don't over-mix.
-    </p>
-
-    <div class="toggle-row">
-      <label for="pattern-toggle">Yes, enter volume to be subtracted</label>
-      <button class="switch-btn" id="pattern-toggle" type="button" aria-label="Yes, enter volume to be subtracted" aria-pressed="false"></button>
+      <button class="switch-btn" id="pattern-toggle" type="button" aria-label="Subtract model volume" aria-pressed="false"></button>
     </div>
 
     <div class="pattern-options" id="pattern-options">
+      <p class="step-note" style="margin: 0.75rem 0 1rem;">
+        The model (also called the pattern) is the original object inside the cottle. Subtract its volume so you don't over-mix.
+      </p>
       <div class="toggle-pills">
         <button class="pill-btn selected" data-mode="volume">Estimated volume</button>
         <button class="pill-btn" data-mode="weight">By weight (wax)</button>
@@ -1018,7 +1068,7 @@
           <label for="pattern-vol">Model volume</label>
           <div class="unit-suffix">
             <input type="number" inputmode="decimal" id="pattern-vol" placeholder="0" min="0" step="0.1">
-            <span>cm³</span>
+            <span class="unit-label-vol">cm³</span>
           </div>
         </div>
       </div>
@@ -1054,7 +1104,7 @@
 
     <div class="nav-buttons">
       <button class="btn btn-secondary" id="back3">Back</button>
-      <button class="btn btn-primary" id="next3">Next</button>
+      <button class="btn btn-primary" id="next3">Skip</button>
     </div>
   </div>
 
@@ -1157,6 +1207,27 @@
     </div>
   </div>
 
+  <!-- Settings modal -->
+  <div class="modal-overlay" id="settings-modal" style="display:none" role="dialog" aria-modal="true" aria-labelledby="settings-modal-title">
+    <div class="modal-card">
+      <h3 id="settings-modal-title">Settings</h3>
+      <div class="toggle-row">
+        <label>Units</label>
+        <div class="settings-unit-toggle">
+          <button class="settings-unit-btn" id="settings-unit-metric" type="button">Metric</button>
+          <button class="settings-unit-btn" id="settings-unit-imperial" type="button">Imperial</button>
+        </div>
+      </div>
+      <div class="toggle-row">
+        <label>High contrast</label>
+        <button class="switch-btn" id="hc-toggle" type="button" aria-label="High contrast" aria-pressed="false"></button>
+      </div>
+      <div class="modal-btns" style="margin-top: 1.25rem;">
+        <button class="btn btn-primary" id="settings-done" type="button">Done</button>
+      </div>
+    </div>
+  </div>
+
   <!-- Delete recipe modal -->
   <div class="modal-overlay" id="delete-modal" style="display:none" role="dialog" aria-modal="true" aria-labelledby="delete-modal-title">
     <div class="modal-card">
@@ -1193,6 +1264,8 @@
   // ── Custom recipe storage ──────────────────────────────────────
   const CUSTOM_RECIPES_KEY = 'volumizer_custom_recipes';
   const LAST_RECIPE_KEY = 'volumizer_last_recipe';
+  const SETTINGS_KEY = 'volumizer_settings';
+  const IN3_PER_CM3 = 16.387064;
 
   function escapeHtml(s) {
     return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
@@ -1208,6 +1281,62 @@
 
   function saveCustomRecipes(arr) {
     localStorage.setItem(CUSTOM_RECIPES_KEY, JSON.stringify(arr));
+  }
+
+  // ── Settings ──────────────────────────────────────────────────
+  function loadAppSettings() {
+    try { return JSON.parse(localStorage.getItem(SETTINGS_KEY)) || {}; } catch (e) { return {}; }
+  }
+  function saveAppSettings() {
+    localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
+  }
+  const settings = Object.assign({ units: 'metric', highContrast: false }, loadAppSettings());
+
+  function applyHighContrast() {
+    document.documentElement.classList.toggle('high-contrast', settings.highContrast);
+  }
+  function volUnit() {
+    return settings.units === 'imperial' ? 'in³' : 'cm³';
+  }
+  function fmtVol(cm3) {
+    return settings.units === 'imperial'
+      ? (Math.round(cm3 / IN3_PER_CM3 * 10) / 10) + ' in³'
+      : round(cm3) + ' cm³';
+  }
+  function fmtVolNum(cm3) {
+    return settings.units === 'imperial'
+      ? Math.round(cm3 / IN3_PER_CM3 * 10) / 10
+      : round(cm3);
+  }
+  function updateUnitLabels() {
+    const len = settings.units === 'imperial' ? 'in' : 'cm';
+    const vol = settings.units === 'imperial' ? 'in³' : 'cm³';
+    document.querySelectorAll('.unit-label-len').forEach(el => el.textContent = len);
+    document.querySelectorAll('.unit-label-vol').forEach(el => el.textContent = vol);
+  }
+  function convertInputValues(fromUnits) {
+    const toImperial = fromUnits === 'metric';
+    const lenFactor = toImperial ? (1 / 2.54) : 2.54;
+    const volFactor = toImperial ? (1 / IN3_PER_CM3) : IN3_PER_CM3;
+    ['box-l', 'box-w', 'box-h', 'cyl-r', 'cyl-d', 'cyl-h'].forEach(id => {
+      const el = document.getElementById(id);
+      const val = parseFloat(el.value);
+      if (val > 0) el.value = Math.round(val * lenFactor * 100) / 100;
+    });
+    ['hb-vol', 'pattern-vol'].forEach(id => {
+      const el = document.getElementById(id);
+      const val = parseFloat(el.value);
+      if (val > 0) el.value = Math.round(val * volFactor * 10) / 10;
+    });
+  }
+  function refreshAfterUnitChange(prevUnits) {
+    if (prevUnits !== settings.units) convertInputValues(prevUnits);
+    updateUnitLabels();
+    validateStep2();
+    updateStep3Gutcheck();
+    updateStep4Gutcheck();
+    const active = document.querySelector('.step.active');
+    if (active && active.dataset.step === '5') calculateAndShowResults();
   }
 
   function recipesMatch(a, b) {
@@ -1227,11 +1356,12 @@
   }
 
   function getCottleVolume() {
+    const imp = settings.units === 'imperial';
     if (state.shape === 'box') {
       const l = parseFloat(document.getElementById('box-l').value) || 0;
       const w = parseFloat(document.getElementById('box-w').value) || 0;
       const h = parseFloat(document.getElementById('box-h').value) || 0;
-      return l * w * h;
+      return imp ? l * w * h * IN3_PER_CM3 : l * w * h;
     } else if (state.shape === 'cylinder') {
       let r;
       if (state.cylinder.dimMode === 'radius') {
@@ -1241,9 +1371,10 @@
         r = d / 2;
       }
       const h = parseFloat(document.getElementById('cyl-h').value) || 0;
-      return Math.PI * r * r * h;
+      return imp ? Math.PI * r * r * h * IN3_PER_CM3 : Math.PI * r * r * h;
     } else if (state.shape === 'handbuilt') {
-      return parseFloat(document.getElementById('hb-vol').value) || 0;
+      const vol = parseFloat(document.getElementById('hb-vol').value) || 0;
+      return imp ? vol * IN3_PER_CM3 : vol;
     }
     return 0;
   }
@@ -1337,7 +1468,7 @@
 
     if (valid) {
       const vol = getCottleVolume();
-      gcCottleVolume.textContent = round(vol) + ' cm³';
+      gcCottleVolume.textContent = fmtVol(vol);
       step2Gutcheck.classList.add('visible');
     } else {
       step2Gutcheck.classList.remove('visible');
@@ -1382,6 +1513,7 @@
   back2.addEventListener('click', () => showStep(1));
 
   next2.addEventListener('click', () => {
+    next3.textContent = state.patternEnabled ? 'Next' : 'Skip';
     showStep(3);
     updateStep3Gutcheck();
   });
@@ -1405,7 +1537,8 @@
   function getPatternVolume() {
     if (!state.patternEnabled) return 0;
     if (state.patternMode === 'volume') {
-      return parseFloat(document.getElementById('pattern-vol').value) || 0;
+      const vol = parseFloat(document.getElementById('pattern-vol').value) || 0;
+      return settings.units === 'imperial' ? vol * IN3_PER_CM3 : vol;
     } else {
       const w = parseFloat(document.getElementById('pattern-weight').value) || 0;
       return w / WAX_SG;
@@ -1414,13 +1547,13 @@
 
   function updateStep3Gutcheck() {
     const cottleVol = getCottleVolume();
-    gcStep3Cottle.textContent = round(cottleVol) + ' cm³';
+    gcStep3Cottle.textContent = fmtVol(cottleVol);
 
     if (state.patternEnabled) {
       const patternVol = getPatternVolume();
       const netVol = Math.max(0, cottleVol - patternVol);
-      gcStep3Pattern.textContent = round(patternVol) + ' cm³';
-      gcStep3Net.textContent = round(netVol) + ' cm³';
+      gcStep3Pattern.textContent = fmtVol(patternVol);
+      gcStep3Net.textContent = fmtVol(netVol);
       gcStep3PatternRow.style.display = 'flex';
       gcStep3NetRow.style.display = 'flex';
     } else {
@@ -1435,6 +1568,7 @@
     patternToggle.classList.toggle('on', state.patternEnabled);
     patternToggle.setAttribute('aria-pressed', String(state.patternEnabled));
     patternOptions.classList.toggle('visible', state.patternEnabled);
+    next3.textContent = state.patternEnabled ? 'Next' : 'Skip';
     if (!state.patternEnabled) {
       state.patternVol = 0;
       state.patternWeight = 0;
@@ -1466,7 +1600,7 @@
   next3.addEventListener('click', () => {
     if (state.patternEnabled) {
       if (state.patternMode === 'volume') {
-        state.patternVol = parseFloat(document.getElementById('pattern-vol').value) || 0;
+        state.patternVol = getPatternVolume();
       } else {
         state.patternWeight = parseFloat(document.getElementById('pattern-weight').value) || 0;
         state.patternVol = state.patternWeight / WAX_SG;
@@ -1793,13 +1927,13 @@
 
   function updateStep4Gutcheck() {
     const cottleVol = getCottleVolume();
-    gcStep4Cottle.textContent = round(cottleVol) + ' cm³';
+    gcStep4Cottle.textContent = fmtVol(cottleVol);
 
     if (state.patternEnabled) {
       const patternVol = state.patternVol;
       const netVol = Math.max(0, cottleVol - patternVol);
-      gcStep4Pattern.textContent = round(patternVol) + ' cm³';
-      gcStep4Net.textContent = round(netVol) + ' cm³';
+      gcStep4Pattern.textContent = fmtVol(patternVol);
+      gcStep4Net.textContent = fmtVol(netVol);
       gcStep4PatternRow.style.display = 'flex';
       gcStep4NetRow.style.display = 'flex';
     } else {
@@ -1809,14 +1943,6 @@
     step4Gutcheck.classList.add('visible');
   }
 
-  const modelHelpBtn = document.getElementById('model-help-btn');
-  const modelHelpNote = document.getElementById('model-help-note');
-  modelHelpBtn.addEventListener('click', () => {
-    const open = modelHelpNote.style.display === 'none';
-    modelHelpNote.style.display = open ? '' : 'none';
-    modelHelpBtn.classList.toggle('open', open);
-  });
-
   const recipeHelpBtn = document.getElementById('recipe-help-btn');
   const recipeHelpNote = document.getElementById('recipe-help-note');
   recipeHelpBtn.addEventListener('click', () => {
@@ -1825,7 +1951,10 @@
     recipeHelpBtn.classList.toggle('open', open);
   });
 
-  back4.addEventListener('click', () => showStep(3));
+  back4.addEventListener('click', () => {
+    next3.textContent = state.patternEnabled ? 'Next' : 'Skip';
+    showStep(3);
+  });
 
   next4.addEventListener('click', () => {
     localStorage.setItem(LAST_RECIPE_KEY, JSON.stringify(state.recipe));
@@ -1921,13 +2050,13 @@
     const volResults = document.getElementById('volume-results');
     let volHtml = '';
 
-    volHtml += `<div class="result-card"><div class="label">Cottle volume</div><div class="value">${round(cottleVolume)} <span class="unit">cm³</span></div></div>`;
+    volHtml += `<div class="result-card"><div class="label">Cottle volume</div><div class="value">${fmtVolNum(cottleVolume)} <span class="unit">${volUnit()}</span></div></div>`;
 
     if (state.patternEnabled && patternVol > 0) {
-      volHtml += `<div class="result-card"><div class="label">Model volume</div><div class="value">${round(patternVol)} <span class="unit">cm³</span></div></div>`;
-      volHtml += `<div class="result-card highlight full"><div class="label">Net volume</div><div class="value">${round(netVolume)} <span class="unit">cm³</span></div></div>`;
+      volHtml += `<div class="result-card"><div class="label">Model volume</div><div class="value">${fmtVolNum(patternVol)} <span class="unit">${volUnit()}</span></div></div>`;
+      volHtml += `<div class="result-card highlight full"><div class="label">Net volume</div><div class="value">${fmtVolNum(netVolume)} <span class="unit">${volUnit()}</span></div></div>`;
     } else {
-      volHtml += `<div class="result-card highlight"><div class="label">Net volume</div><div class="value">${round(netVolume)} <span class="unit">cm³</span></div></div>`;
+      volHtml += `<div class="result-card highlight"><div class="label">Net volume</div><div class="value">${fmtVolNum(netVolume)} <span class="unit">${volUnit()}</span></div></div>`;
     }
 
     volResults.innerHTML = volHtml;
@@ -1949,6 +2078,63 @@
     });
   }
 
+  // ── Settings modal ────────────────────────────────────────────
+  const settingsBtn = document.getElementById('settings-btn');
+  const settingsModal = document.getElementById('settings-modal');
+  const settingsDone = document.getElementById('settings-done');
+  const settingsUnitMetric = document.getElementById('settings-unit-metric');
+  const settingsUnitImperial = document.getElementById('settings-unit-imperial');
+  const hcToggle = document.getElementById('hc-toggle');
+
+  function openSettingsModal() {
+    settingsUnitMetric.classList.toggle('selected', settings.units === 'metric');
+    settingsUnitImperial.classList.toggle('selected', settings.units === 'imperial');
+    hcToggle.classList.toggle('on', settings.highContrast);
+    hcToggle.setAttribute('aria-pressed', String(settings.highContrast));
+    settingsModal.style.display = 'flex';
+  }
+
+  function closeSettingsModal() {
+    settingsModal.style.display = 'none';
+  }
+
+  settingsBtn.addEventListener('click', openSettingsModal);
+  settingsDone.addEventListener('click', closeSettingsModal);
+  settingsModal.addEventListener('click', e => { if (e.target === settingsModal) closeSettingsModal(); });
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape' && settingsModal.style.display === 'flex') closeSettingsModal();
+  });
+
+  settingsUnitMetric.addEventListener('click', () => {
+    if (settings.units === 'metric') return;
+    const prev = settings.units;
+    settings.units = 'metric';
+    settingsUnitMetric.classList.add('selected');
+    settingsUnitImperial.classList.remove('selected');
+    saveAppSettings();
+    refreshAfterUnitChange(prev);
+  });
+
+  settingsUnitImperial.addEventListener('click', () => {
+    if (settings.units === 'imperial') return;
+    const prev = settings.units;
+    settings.units = 'imperial';
+    settingsUnitImperial.classList.add('selected');
+    settingsUnitMetric.classList.remove('selected');
+    saveAppSettings();
+    refreshAfterUnitChange(prev);
+  });
+
+  hcToggle.addEventListener('click', () => {
+    settings.highContrast = !settings.highContrast;
+    hcToggle.classList.toggle('on', settings.highContrast);
+    hcToggle.setAttribute('aria-pressed', String(settings.highContrast));
+    saveAppSettings();
+    applyHighContrast();
+  });
+
+  applyHighContrast();
+  updateUnitLabels();
   showStep(1);
 })();
 </script>

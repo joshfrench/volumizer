@@ -27,8 +27,20 @@ body {
 }
 
 header {
+  position: relative;
   text-align: center;
   margin-bottom: 1.5rem;
+}
+
+html.high-contrast {
+  --bg: #f5ede3;
+  --card: #ffffff;
+  --border: #7a5a3a;
+  --text: #1a0a00;
+  --text-secondary: #4a3020;
+  --accent: #b85200;
+  --accent-light: #fad0a0;
+  --danger: #8b0000;
 }
 
 header h1 {
