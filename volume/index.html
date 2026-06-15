@@ -690,6 +690,13 @@
     background: var(--bg);
     color: var(--text);
     -webkit-appearance: none;
+    -moz-appearance: textfield;
+  }
+
+  .recipe-row .parts-wrap input[type="number"]::-webkit-outer-spin-button,
+  .recipe-row .parts-wrap input[type="number"]::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
   }
 
   .recipe-row .parts-wrap input[type="number"]:focus {
