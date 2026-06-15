@@ -1910,6 +1910,13 @@
         ing.parts = parseFloat(partsInput.value) || 0;
         updatePresetHighlight();
       });
+      partsInput.addEventListener('blur', () => {
+        if (!(ing.parts > 0)) {
+          ing.parts = 0.1;
+          partsInput.value = 0.1;
+          updatePresetHighlight();
+        }
+      });
       const partsLabel = document.createElement('span');
       partsLabel.textContent = 'parts';
       partsWrap.appendChild(partsInput);
@@ -1926,7 +1933,6 @@
         removeBtn.addEventListener('click', () => {
           state.recipe.splice(idx, 1);
           renderRecipeRows();
-          updatePresetHighlight();
         });
       }
 
