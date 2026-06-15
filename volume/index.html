@@ -1621,6 +1621,7 @@
     }
     renderRecipeRows();
     updateStep4Gutcheck();
+    updateMyRecipesSection();
   }
 
   function renderRecipeRows() {
@@ -1706,6 +1707,7 @@
       if (matches) matched = btn.dataset.preset;
     });
     presetDescriptionEl.textContent = matched ? PRESETS[matched].description : '';
+    presetDescriptionEl.style.display = matched ? '' : 'none';
     updateSaveButton();
   }
 
