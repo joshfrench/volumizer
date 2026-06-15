@@ -656,6 +656,160 @@
     cursor: pointer;
     -webkit-appearance: none;
   }
+
+  /* ── Modals ─────────────────────────────────────────────────── */
+  .modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(51, 42, 34, 0.45);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1.25rem;
+    z-index: 100;
+  }
+
+  .modal-card {
+    background: white;
+    border-radius: 14px;
+    padding: 20px;
+    width: 100%;
+    max-width: 320px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.18);
+  }
+
+  .modal-card h3 {
+    font-size: 17px;
+    font-weight: 600;
+    margin: 0 0 14px;
+    color: var(--text);
+  }
+
+  .modal-card .modal-msg {
+    font-size: 14px;
+    color: var(--text);
+    margin: 0 0 16px;
+    line-height: 1.4;
+  }
+
+  .modal-input {
+    width: 100%;
+    font-size: 16px;
+    padding: 12px 14px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: var(--bg);
+    color: var(--text);
+    margin-bottom: 14px;
+    box-sizing: border-box;
+    -webkit-appearance: none;
+  }
+
+  .modal-input:focus {
+    outline: none;
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px var(--accent-light);
+  }
+
+  .modal-btns {
+    display: flex;
+    gap: 10px;
+  }
+
+  .btn-danger {
+    background: var(--danger);
+    color: white;
+    flex: 1;
+    padding: 14px;
+    font-size: 16px;
+    font-weight: 500;
+    border-radius: 10px;
+    border: none;
+    cursor: pointer;
+    -webkit-appearance: none;
+  }
+
+  .btn-danger:active {
+    opacity: 0.85;
+  }
+
+  /* ── My recipes section ───────────────────────────────────────── */
+  .my-recipes {
+    margin-bottom: 1rem;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    overflow: hidden;
+  }
+
+  .my-recipes-toggle {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 12px 14px;
+    font-size: 14px;
+    font-weight: 500;
+    background: var(--bg);
+    border: none;
+    color: var(--text);
+    cursor: pointer;
+    text-align: left;
+    -webkit-appearance: none;
+  }
+
+  .my-recipes-list {
+    border-top: 1px solid var(--border);
+  }
+
+  .my-recipe-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 11px 14px;
+    border-top: 0.5px solid var(--border);
+  }
+
+  .my-recipe-row:first-child {
+    border-top: none;
+  }
+
+  .my-recipe-name {
+    font-size: 15px;
+    color: var(--text);
+    flex: 1;
+    cursor: pointer;
+    padding: 2px 0;
+  }
+
+  .my-recipe-delete {
+    font-size: 13px;
+    color: var(--danger);
+    background: none;
+    border: none;
+    padding: 4px 8px;
+    cursor: pointer;
+    -webkit-appearance: none;
+    flex-shrink: 0;
+  }
+
+  /* ── Save recipe button ────────────────────────────────────────── */
+  .save-recipe-btn {
+    width: 100%;
+    padding: 12px;
+    font-size: 15px;
+    font-weight: 500;
+    border: 1.5px solid var(--accent);
+    border-radius: 8px;
+    background: white;
+    color: var(--accent);
+    cursor: pointer;
+    margin-bottom: 1rem;
+    -webkit-appearance: none;
+  }
+
+  .save-recipe-btn:active {
+    background: var(--accent-light);
+  }
 </style>
 </head>
 <body>
