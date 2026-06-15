@@ -1246,7 +1246,7 @@
 
     <details class="summary-note-details">
       <summary>How is this calculated?</summary>
-      <p class="summary-note">Weights are calculated from net mold volume × 0.64 = water weight (g), with each ingredient scaled by its parts relative to water. Round up as needed for your mix.</p>
+      <p class="summary-note">Weights are calculated from net mold volume × 0.64 = water weight (g), with each ingredient scaled by its parts relative to water. Weights are approximate — enable Precision mode in Settings for decimal values.</p>
     </details>
 
     <div class="timer-section">
@@ -1389,7 +1389,7 @@
   }
   function fmtWeight(w) {
     return settings.precisionMode
-      ? round(w) + ' g'
+      ? w.toFixed(1) + ' g'
       : '~' + Math.round(w) + ' g';
   }
   function fmtVol(cm3) {
@@ -1429,7 +1429,6 @@
     validateStep2();
     updatePatternGutcheck();
     updateStep4Gutcheck();
-    const active = document.querySelector('.step.active');
     if (document.getElementById('step-results').classList.contains('active')) calculateAndShowResults();
   }
 
@@ -2186,7 +2185,7 @@
     settingsUnitMetric.classList.toggle('selected', settings.units === 'metric');
     settingsUnitImperial.classList.toggle('selected', settings.units === 'imperial');
     precisionToggle.classList.toggle('on', settings.precisionMode);
-    precisionToggle.setAttribute('aria-pressed', String(settings.precisionMode));
+    precisionToggle.setAttribute('aria-pressed', String(!!settings.precisionMode));
     hcToggle.classList.toggle('on', settings.highContrast);
     hcToggle.setAttribute('aria-pressed', String(settings.highContrast));
     settingsModal.style.display = 'flex';
@@ -2226,7 +2225,7 @@
   precisionToggle.addEventListener('click', () => {
     settings.precisionMode = !settings.precisionMode;
     precisionToggle.classList.toggle('on', settings.precisionMode);
-    precisionToggle.setAttribute('aria-pressed', String(settings.precisionMode));
+    precisionToggle.setAttribute('aria-pressed', String(!!settings.precisionMode));
     saveAppSettings();
     if (document.getElementById('step-results').classList.contains('active')) calculateAndShowResults();
   });
