@@ -1146,6 +1146,33 @@
   const WAX_SG = 0.93;
   const WATER_RATIO = 0.64;
 
+  // ── Custom recipe storage ──────────────────────────────────────
+  const CUSTOM_RECIPES_KEY = 'volumizer_custom_recipes';
+
+  function loadCustomRecipes() {
+    try {
+      return JSON.parse(localStorage.getItem(CUSTOM_RECIPES_KEY) || '[]');
+    } catch (e) {
+      return [];
+    }
+  }
+
+  function saveCustomRecipes(arr) {
+    localStorage.setItem(CUSTOM_RECIPES_KEY, JSON.stringify(arr));
+  }
+
+  function recipesMatch(a, b) {
+    if (a.length !== b.length) return false;
+    return a.every((ing, idx) =>
+      ing.name.trim().toLowerCase() === b[idx].name.trim().toLowerCase() &&
+      Math.abs(ing.parts - b[idx].parts) < 0.001
+    );
+  }
+
+  function recipeMatchesAnyCustom() {
+    return loadCustomRecipes().some(cr => recipesMatch(state.recipe, cr.ingredients));
+  }
+
   function round(n) {
     return Math.round(n * 10) / 10;
   }
