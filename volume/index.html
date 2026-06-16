@@ -1393,14 +1393,22 @@
       : '~' + Math.round(w) + ' g';
   }
   function fmtVol(cm3) {
-    return settings.units === 'imperial'
-      ? (Math.round(cm3 / IN3_PER_CM3 * 10) / 10) + ' in³'
-      : round(cm3) + ' cm³';
+    if (settings.units === 'imperial') {
+      const val = cm3 / IN3_PER_CM3;
+      return settings.precisionMode
+        ? (Math.round(val * 10) / 10) + ' in³'
+        : '~' + Math.round(val) + ' in³';
+    }
+    return settings.precisionMode
+      ? round(cm3) + ' cm³'
+      : '~' + Math.round(cm3) + ' cm³';
   }
   function fmtVolNum(cm3) {
-    return settings.units === 'imperial'
-      ? Math.round(cm3 / IN3_PER_CM3 * 10) / 10
-      : round(cm3);
+    if (settings.units === 'imperial') {
+      const val = cm3 / IN3_PER_CM3;
+      return settings.precisionMode ? Math.round(val * 10) / 10 : '~' + Math.round(val);
+    }
+    return settings.precisionMode ? round(cm3) : '~' + Math.round(cm3);
   }
   function updateUnitLabels() {
     const len = settings.units === 'imperial' ? 'in' : 'cm';
@@ -2227,6 +2235,9 @@
     precisionToggle.classList.toggle('on', settings.precisionMode);
     precisionToggle.setAttribute('aria-pressed', String(!!settings.precisionMode));
     saveAppSettings();
+    validateStep2();
+    updatePatternGutcheck();
+    updateStep4Gutcheck();
     if (document.getElementById('step-results').classList.contains('active')) calculateAndShowResults();
   });
 
