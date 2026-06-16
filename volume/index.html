@@ -1914,7 +1914,7 @@
       const partsInput = document.createElement('input');
       partsInput.type = 'number';
       partsInput.inputMode = 'decimal';
-      partsInput.min = '0';
+      partsInput.min = '0.1';
       partsInput.step = '0.1';
       partsInput.value = ing.parts;
       partsInput.addEventListener('input', () => {
@@ -2031,7 +2031,7 @@
   back4.addEventListener('click', () => showStep(2));
 
   next4.addEventListener('click', () => {
-    localStorage.setItem(LAST_RECIPE_KEY, JSON.stringify(state.recipe));
+    localStorage.setItem(LAST_RECIPE_KEY, JSON.stringify(state.recipe.map(ing => ({ ...ing, parts: ing.parts > 0 ? ing.parts : 0.1 }))));
     calculateAndShowResults();
     showStep(4);
   });
