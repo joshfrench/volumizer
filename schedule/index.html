@@ -414,12 +414,12 @@ function render() {
                value="${esc(seg.rate)}" data-field="rate" placeholder="°F/hr">
         <div class="field-wrap">
           <input type="number" inputmode="decimal"
-                 value="${seg.target}" data-field="target" placeholder="0">
+                 value="${esc(seg.target)}" data-field="target" placeholder="0">
           <span class="unit">°F</span>
         </div>
         <div class="field-wrap">
           <input type="number" inputmode="decimal"
-                 value="${seg.hold}" data-field="hold" placeholder="0">
+                 value="${esc(seg.hold)}" data-field="hold" placeholder="0">
           <span class="unit">h</span>
         </div>
         <div class="seg-time">${timeStr}${estSpan}</div>
@@ -477,6 +477,9 @@ segBody.addEventListener('click', e => {
 
   if (action === 'delete') {
     segments.splice(index, 1);
+    if (segments.length === 0) {
+      segments.push({ rate: '', target: '', hold: '', notes: '' });
+    }
     render();
   } else if (action === 'note') {
     openNotesModal(index);
@@ -525,6 +528,10 @@ document.getElementById('modal-done').addEventListener('click', closeNotesModal)
 const notesModalEl = document.getElementById('notes-modal');
 notesModalEl.addEventListener('click', e => {
   if (e.target === notesModalEl) closeNotesModal();
+});
+
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape' && modalIndex >= 0) closeNotesModal();
 });
 
 // ── Graph ──────────────────────────────────────────────────────────────────
