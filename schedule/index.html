@@ -817,6 +817,8 @@ function setUnit(u) {
   if (u === tempUnit) return;
   tempUnit = u;
   saveSchedSettings();
+  unitFBtn.classList.toggle('selected', tempUnit === 'F');
+  unitCBtn.classList.toggle('selected', tempUnit === 'C');
   updateColHeaders();
   render();
 }
