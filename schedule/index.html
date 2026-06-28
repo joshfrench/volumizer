@@ -358,11 +358,16 @@ function isAfap(val) {
 
 function fmtTime(hours) {
   if (!isFinite(hours) || hours <= 0) return '—';
-  const h = Math.floor(hours);
-  const m = Math.round((hours - h) * 60);
+  let h = Math.floor(hours);
+  let m = Math.round((hours - h) * 60);
+  if (m === 60) { h += 1; m = 0; }
   if (h === 0) return `${m}m`;
   if (m === 0) return `${h}h`;
   return `${h}h ${m}m`;
+}
+
+function esc(s) {
+  return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 }
 
 // ── Calculations ───────────────────────────────────────────────────────────
@@ -375,7 +380,7 @@ function calcSegments() {
     const hold   = parseFloat(seg.hold) || 0;
     const prevTemp = i === 0
       ? AMBIENT_TEMP
-      : (parseFloat(segments[i - 1].target) || AMBIENT_TEMP);
+      : (prev => isNaN(prev) ? AMBIENT_TEMP : prev)(parseFloat(segments[i - 1].target));
 
     if (isNaN(target) || isNaN(rate) || rate <= 0) {
       return { rampTime: 0, stageTime: 0, cumTime, isAfap: afap, valid: false };
@@ -399,14 +404,14 @@ function render() {
     const estSpan = calc.isAfap && calc.valid ? '<span class="est">est.</span>' : '';
     const rateClass = isAfap(seg.rate) ? ' is-afap' : '';
     const noteChip = seg.notes
-      ? `<div class="note-chip filled" data-action="note" data-index="${i}">${seg.notes}</div>`
+      ? `<div class="note-chip filled" data-action="note" data-index="${i}">${esc(seg.notes)}</div>`
       : `<div class="note-chip empty"  data-action="note" data-index="${i}">+ note</div>`;
 
     return `
       <div class="seg-row" data-index="${i}">
         <span class="seg-num">${i + 1}</span>
         <input class="seg-rate${rateClass}" type="text" inputmode="decimal"
-               value="${seg.rate}" data-field="rate" placeholder="°F/hr">
+               value="${esc(seg.rate)}" data-field="rate" placeholder="°F/hr">
         <div class="field-wrap">
           <input type="number" inputmode="decimal"
                  value="${seg.target}" data-field="target" placeholder="0">
