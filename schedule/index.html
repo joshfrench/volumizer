@@ -601,7 +601,8 @@ segBody.addEventListener('blur', e => {
   if (e.target.dataset.field !== 'rate') return;
   const row = e.target.closest('.seg-row');
   if (!row) return;
-  const i          = parseInt(row.dataset.index, 10);
+  const i = parseInt(row.dataset.index, 10);
+  if (i >= segments.length) return;  // element was detached by splice+render — nothing to update
   segments[i].rate = canonRate(e.target.value);
   e.target.value   = dispRate(segments[i].rate);
   e.target.classList.toggle('is-afap', isAfap(segments[i].rate));
@@ -609,13 +610,15 @@ segBody.addEventListener('blur', e => {
 }, true /* useCapture — blur doesn't bubble */);
 
 segBody.addEventListener('keydown', e => {
-  // Enter on holdM: add segment and focus new row's rate field
-  if (e.key === 'Enter' && (e.target.dataset.field === 'holdH' || e.target.dataset.field === 'holdM')) {
+  // Enter on any field: add segment and focus new row's rate field
+  if (e.key === 'Enter' && e.target.dataset.field) {
     e.preventDefault();
     segments.push({ rate: '', target: '', hold: '' });
     render();
-    const rows = document.querySelectorAll('.seg-row');
-    rows[rows.length - 1]?.querySelector('input')?.focus();
+    requestAnimationFrame(() => {
+      const rows = document.querySelectorAll('.seg-row');
+      rows[rows.length - 1]?.querySelector('input')?.focus();
+    });
     return;
   }
 
@@ -628,12 +631,14 @@ segBody.addEventListener('keydown', e => {
     const i = parseInt(row.dataset.index, 10);
     e.preventDefault();
 
+    const focusAndSelect = el => { el?.focus(); el?.select?.(); };
+
     if (field === 'target') {
-      document.querySelector(`.seg-row[data-index="${i}"] [data-field="rate"]`)?.focus();
+      focusAndSelect(document.querySelector(`.seg-row[data-index="${i}"] [data-field="rate"]`));
     } else if (field === 'holdH') {
-      document.querySelector(`.seg-row[data-index="${i}"] [data-field="target"]`)?.focus();
+      focusAndSelect(document.querySelector(`.seg-row[data-index="${i}"] [data-field="target"]`));
     } else if (field === 'holdM') {
-      document.querySelector(`.seg-row[data-index="${i}"] [data-field="holdH"]`)?.focus();
+      focusAndSelect(document.querySelector(`.seg-row[data-index="${i}"] [data-field="holdH"]`));
     } else if (field === 'rate') {
       if (i === 0) return;
       const seg = segments[i];
@@ -641,8 +646,12 @@ segBody.addEventListener('keydown', e => {
       if (deleteRow) {
         segments.splice(i, 1);
         render();
+        requestAnimationFrame(() => {
+          focusAndSelect(document.querySelector(`.seg-row[data-index="${i - 1}"] [data-field="holdM"]`));
+        });
+      } else {
+        focusAndSelect(document.querySelector(`.seg-row[data-index="${i - 1}"] [data-field="holdM"]`));
       }
-      document.querySelector(`.seg-row[data-index="${i - 1}"] [data-field="holdM"]`)?.focus();
     }
   }
 });
