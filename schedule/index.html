@@ -727,18 +727,25 @@ function renderGraph(calcs) {
     }
   });
 
-  // ── Horizontal grid lines (values in display unit, positions in canonical °F) ──
-  const gridVals = tempUnit === 'C' ? [250, 500, 750] : [500, 1000, 1500];
-  const gridLines = gridVals.map(v => {
-    const tF = tempUnit === 'C' ? cToF(v) : v;   // canonical °F position
-    if (tF <= yMin || tF >= yMax) return '';
-    return `
+  // ── Horizontal grid lines — auto-scaled to the actual y range ───────────
+  function niceGridStep(range) {
+    const raw = range / 4;
+    const mag = Math.pow(10, Math.floor(Math.log10(raw)));
+    const n   = raw / mag;
+    return n < 1.5 ? mag : n < 3.5 ? 2 * mag : n < 7.5 ? 5 * mag : 10 * mag;
+  }
+  const gridStep  = niceGridStep(yMax - yMin);
+  const gridStart = Math.ceil((yMin + 1) / gridStep) * gridStep;
+  const gridLines = [];
+  for (let tF = gridStart; tF < yMax; tF += gridStep) {
+    const label = tempUnit === 'C' ? `${Math.round(fToC(tF))}°` : `${Math.round(tF)}°`;
+    gridLines.push(`
       <line x1="${PAD_L}" y1="${ty(tF).toFixed(1)}" x2="${W - PAD_R}" y2="${ty(tF).toFixed(1)}"
             stroke="var(--border)" stroke-width="0.5" stroke-dasharray="2,3"/>
       <text x="${PAD_L - 4}" y="${(ty(tF) + 3).toFixed(1)}"
-            font-size="8" fill="var(--text-secondary)" text-anchor="end">${v}°</text>
-    `;
-  }).join('');
+            font-size="8" fill="var(--text-secondary)" text-anchor="end">${label}</text>
+    `);
+  }
 
   // ── X-axis tick labels at 0%, 25%, 50%, 75%, 100% of total time ───────
   const xTicks = [0, 0.25, 0.5, 0.75, 1.0].map(f => {
@@ -772,7 +779,7 @@ function renderGraph(calcs) {
     <text x="${PAD_L - 4}" y="${(ty(0) + 3).toFixed(1)}"
           font-size="8" fill="var(--text-secondary)" text-anchor="end">${Math.round(tempUnit === 'C' ? fToC(0) : 0)}°</text>
     <!-- grid lines + y labels -->
-    ${gridLines}
+    ${gridLines.join('')}
     <!-- x labels -->
     ${xTicks}
     <!-- firing curve -->
