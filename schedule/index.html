@@ -342,7 +342,165 @@
 </div>
 
 <script>
-// JS goes here in later tasks
+// ── Constants ──────────────────────────────────────────────────────────────
+const AMBIENT_TEMP = 70;  // °F — assumed starting temperature
+const AFAP_RATE    = 300; // °F/hr — fixed estimate for "as fast as possible"
+
+// ── State ──────────────────────────────────────────────────────────────────
+let segments = [{ rate: '', target: '', hold: '', notes: '' }];
+let modalIndex = -1;
+
+// ── Helpers ────────────────────────────────────────────────────────────────
+function isAfap(val) {
+  const s = String(val).trim().toUpperCase();
+  return s === 'AFAP' || s === '9999';
+}
+
+function fmtTime(hours) {
+  if (!isFinite(hours) || hours <= 0) return '—';
+  const h = Math.floor(hours);
+  const m = Math.round((hours - h) * 60);
+  if (h === 0) return `${m}m`;
+  if (m === 0) return `${h}h`;
+  return `${h}h ${m}m`;
+}
+
+// ── Calculations ───────────────────────────────────────────────────────────
+function calcSegments() {
+  let cumTime = 0;
+  return segments.map((seg, i) => {
+    const afap   = isAfap(seg.rate);
+    const rate   = afap ? AFAP_RATE : parseFloat(seg.rate);
+    const target = parseFloat(seg.target);
+    const hold   = parseFloat(seg.hold) || 0;
+    const prevTemp = i === 0
+      ? AMBIENT_TEMP
+      : (parseFloat(segments[i - 1].target) || AMBIENT_TEMP);
+
+    if (isNaN(target) || isNaN(rate) || rate <= 0) {
+      return { rampTime: 0, stageTime: 0, cumTime, isAfap: afap, valid: false };
+    }
+
+    const rampTime  = Math.abs(target - prevTemp) / rate;
+    const stageTime = rampTime + hold;
+    cumTime += stageTime;
+    return { rampTime, stageTime, cumTime, isAfap: afap, valid: true };
+  });
+}
+
+// ── Render ─────────────────────────────────────────────────────────────────
+function render() {
+  const calcs = calcSegments();
+
+  // Table rows
+  document.getElementById('seg-body').innerHTML = segments.map((seg, i) => {
+    const calc = calcs[i];
+    const timeStr = calc.valid ? fmtTime(calc.stageTime) : '—';
+    const estSpan = calc.isAfap && calc.valid ? '<span class="est">est.</span>' : '';
+    const rateClass = isAfap(seg.rate) ? ' is-afap' : '';
+    const noteChip = seg.notes
+      ? `<div class="note-chip filled" data-action="note" data-index="${i}">${seg.notes}</div>`
+      : `<div class="note-chip empty"  data-action="note" data-index="${i}">+ note</div>`;
+
+    return `
+      <div class="seg-row" data-index="${i}">
+        <span class="seg-num">${i + 1}</span>
+        <input class="seg-rate${rateClass}" type="text" inputmode="decimal"
+               value="${seg.rate}" data-field="rate" placeholder="°F/hr">
+        <div class="field-wrap">
+          <input type="number" inputmode="decimal"
+                 value="${seg.target}" data-field="target" placeholder="0">
+          <span class="unit">°F</span>
+        </div>
+        <div class="field-wrap">
+          <input type="number" inputmode="decimal"
+                 value="${seg.hold}" data-field="hold" placeholder="0">
+          <span class="unit">h</span>
+        </div>
+        <div class="seg-time">${timeStr}${estSpan}</div>
+        ${noteChip}
+        <button type="button" class="del-btn" data-action="delete" data-index="${i}" aria-label="Remove segment ${i + 1}">×</button>
+      </div>`;
+  }).join('');
+
+  // Total time
+  const calcsValid = calcs.filter(c => c.valid);
+  const totalHours = calcsValid.reduce((s, c) => s + c.stageTime, 0);
+  const totalRow   = document.getElementById('total-row');
+  if (calcsValid.length > 0 && totalHours > 0) {
+    totalRow.style.display = 'flex';
+    document.getElementById('total-value').textContent = fmtTime(totalHours);
+  } else {
+    totalRow.style.display = 'none';
+  }
+
+  renderGraph(calcs);
+}
+
+// ── Event delegation ───────────────────────────────────────────────────────
+const segBody = document.getElementById('seg-body');
+
+// input: update state immediately; skip re-render for rate (wait for blur)
+segBody.addEventListener('input', e => {
+  const row = e.target.closest('.seg-row');
+  if (!row) return;
+  const i     = parseInt(row.dataset.index, 10);
+  const field = e.target.dataset.field;
+  if (!field) return;
+  segments[i][field] = e.target.value;
+  if (field !== 'rate') render();
+});
+
+// blur on rate: normalize AFAP/9999, then render
+segBody.addEventListener('blur', e => {
+  if (e.target.dataset.field !== 'rate') return;
+  const row = e.target.closest('.seg-row');
+  if (!row) return;
+  const i   = parseInt(row.dataset.index, 10);
+  const val = e.target.value.trim().toUpperCase();
+  segments[i].rate = (val === 'AFAP' || val === '9999') ? 'AFAP' : e.target.value;
+  render();
+}, true /* useCapture so blur fires on delegated elements */);
+
+// click: delete or open notes
+segBody.addEventListener('click', e => {
+  const action = e.target.dataset.action || e.target.closest('[data-action]')?.dataset.action;
+  const index  = parseInt(
+    e.target.dataset.index ?? e.target.closest('[data-index]')?.dataset.index, 10
+  );
+  if (isNaN(index)) return;
+
+  if (action === 'delete') {
+    segments.splice(index, 1);
+    render();
+  } else if (action === 'note') {
+    openNotesModal(index);
+  }
+});
+
+// add segment
+document.getElementById('add-btn').addEventListener('click', () => {
+  segments.push({ rate: '', target: '', hold: '', notes: '' });
+  render();
+  // scroll new row into view
+  const rows = document.querySelectorAll('.seg-row');
+  rows[rows.length - 1]?.scrollIntoView({ block: 'nearest' });
+});
+
+// ── Notes modal (stub — wired up in Task 4) ────────────────────────────────
+function openNotesModal(index) {
+  // implemented in Task 4
+  console.log('openNotesModal', index);
+}
+
+// ── Graph (stub — implemented in Task 5) ──────────────────────────────────
+function renderGraph(calcs) {
+  // implemented in Task 5
+  document.getElementById('graph-card').style.display = 'none';
+}
+
+// ── Bootstrap ─────────────────────────────────────────────────────────────
+render();
 </script>
 </body>
 </html>
