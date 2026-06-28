@@ -390,6 +390,9 @@
     <svg id="graph" viewBox="0 0 400 160" xmlns="http://www.w3.org/2000/svg"></svg>
     <p id="afap-note"></p>
   </div>
+
+  <!-- PDF button -->
+  <button type="button" class="btn btn-primary" id="pdf-btn" style="display:none;width:100%;margin-bottom:1rem;">Download firing log (PDF)</button>
 </div>
 
 <!-- Settings modal -->
@@ -536,8 +539,10 @@ function render() {
   if (calcsValid.length > 0 && totalHours > 0) {
     totalRow.style.display = 'flex';
     document.getElementById('total-value').textContent = fmtTime(totalHours);
+    document.getElementById('pdf-btn').style.display = 'block';
   } else {
     totalRow.style.display = 'none';
+    document.getElementById('pdf-btn').style.display = 'none';
   }
 
   renderGraph(calcs);
@@ -564,8 +569,10 @@ function updateCalcs() {
   if (calcsValid.length > 0 && totalHours > 0) {
     totalRow.style.display = 'flex';
     document.getElementById('total-value').textContent = fmtTime(totalHours);
+    document.getElementById('pdf-btn').style.display = 'block';
   } else {
     totalRow.style.display = 'none';
+    document.getElementById('pdf-btn').style.display = 'none';
   }
 
   if (document.activeElement?.dataset?.field !== 'target') renderGraph(calcs);
@@ -858,6 +865,231 @@ hcToggle.addEventListener('click', () => {
 updateColHeaders();
 render();
 document.querySelector('#seg-body .seg-row input')?.focus();
+
+// ── PDF generation ────────────────────────────────────────────────────────
+let _jspdfPromise = null;
+
+function ensureJsPDF() {
+  if (_jspdfPromise) return _jspdfPromise;
+  if (window.jspdf)  return (_jspdfPromise = Promise.resolve());
+  _jspdfPromise = new Promise((resolve, reject) => {
+    const s = document.createElement('script');
+    s.src = 'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js';
+    s.onload  = resolve;
+    s.onerror = () => { _jspdfPromise = null; reject(new Error('offline')); };
+    document.head.appendChild(s);
+  });
+  return _jspdfPromise;
+}
+
+async function generatePDF() {
+  const btn = document.getElementById('pdf-btn');
+  btn.disabled = true;
+  btn.textContent = 'Generating…';
+  try {
+    await ensureJsPDF();
+    buildFiringLog(window.jspdf.jsPDF);
+  } catch (_e) {
+    alert('Could not load the PDF library. Check your internet connection and try again.');
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Download firing log (PDF)';
+  }
+}
+
+function buildFiringLog(jsPDF) {
+  const doc = new jsPDF({ unit: 'pt', format: 'letter' });
+
+  // ── Colors ──────────────────────────────────────────────────────────────
+  const INK          = [0x2b, 0x2b, 0x2b];
+  const ACCENT       = [0xb5, 0x56, 0x2f];
+  const FAINT        = [0xc9, 0xc2, 0xbb];
+  const DOT          = [0xa3, 0x9a, 0x8f];
+  const HEADER_FILL  = [0xf3, 0xe9, 0xe1];
+  const GREY         = [0x8a, 0x85, 0x80];
+  const BORDER_LIGHT = [0xb8, 0xb1, 0xa9];
+  const DARK_TEXT    = [0x1e, 0x1e, 0x1e];
+
+  // ── Page geometry (mirrors build_firing_log.py constants) ───────────────
+  const PAGE_W = 612, PAGE_H = 792;
+  const MARGIN_TOP = 46, MARGIN_BOTTOM = 32, MARGIN_LEFT = 45, MARGIN_RIGHT = 32;
+  const CONTENT_W = PAGE_W - MARGIN_LEFT - MARGIN_RIGHT;  // 535
+  const LEFT = MARGIN_LEFT;   // 45
+  const RIGHT = PAGE_W - MARGIN_RIGHT;  // 580
+
+  // ── Drawing helpers (jsPDF is top-down; y grows downward) ───────────────
+  function stroke([r, g, b], lw) { doc.setDrawColor(r, g, b); doc.setLineWidth(lw); }
+  function fill([r, g, b])       { doc.setFillColor(r, g, b); }
+  function ink([r, g, b])        { doc.setTextColor(r, g, b); }
+
+  function hline(x1, x2, y, color = FAINT, lw = 0.6) {
+    stroke(color, lw); doc.line(x1, y, x2, y);
+  }
+  function vline(x, y1, y2, color = BORDER_LIGHT, lw = 0.6) {
+    stroke(color, lw); doc.line(x, y1, x, y2);
+  }
+  function box(x, y, w, h, color = BORDER_LIGHT, lw = 0.6) {
+    stroke(color, lw); doc.rect(x, y, w, h, 'S');
+  }
+  function dotGrid(x1, x2, yTop, yBottom, spacing = 13) {
+    fill(DOT);
+    for (let y = yTop; y < yBottom; y += spacing)
+      for (let x = x1; x <= x2; x += spacing)
+        doc.circle(x, y, 0.55, 'F');
+  }
+  function sectionHeader(y, text, note = null) {
+    doc.setFont('helvetica', 'bold'); doc.setFontSize(9); ink(ACCENT);
+    doc.text(text.toUpperCase(), LEFT, y + 8);
+    if (note) {
+      doc.setFont('helvetica', 'italic'); doc.setFontSize(7.5); ink(GREY);
+      doc.text(note, RIGHT, y + 8, { align: 'right' });
+    }
+    hline(LEFT, RIGHT, y + 12, ACCENT, 1);
+    return y + 12;
+  }
+
+  let curY = MARGIN_TOP;
+
+  // ── HEADER STRIP ─────────────────────────────────────────────────────────
+  const row1_h = 32, row2_h = 22, strip_h = row1_h + row2_h;
+  const shared_w = Math.round((182 + 138) / 2);  // 160
+  const proj_w = CONTENT_W - shared_w;           // 375
+
+  box(LEFT, curY, CONTENT_W, strip_h);
+  hline(LEFT, RIGHT, curY + row1_h);
+
+  doc.setFont('helvetica', 'bold'); doc.setFontSize(6.5); ink(ACCENT);
+  doc.text('PROJECT', LEFT + 5, curY + 10);
+  doc.text('DATE', LEFT + proj_w + 5, curY + 10);
+  vline(LEFT + proj_w, curY, curY + row1_h);
+
+  const row2Top = curY + row1_h;
+  const other_w = (CONTENT_W - shared_w) / 3;  // 125
+  const r2ws = [other_w, other_w, other_w, shared_w];
+  ['KILN', 'PROGRAM #', 'FIRING #', 'START TIME'].forEach((label, idx) => {
+    const x = LEFT + r2ws.slice(0, idx).reduce((a, b) => a + b, 0);
+    doc.setFont('helvetica', 'bold'); doc.setFontSize(6.5); ink(ACCENT);
+    doc.text(label, x + 5, row2Top + 10);
+    if (idx > 0) vline(x, row2Top, curY + strip_h);
+  });
+
+  curY += strip_h + 9;
+
+  // ── PIECE & MATERIALS ─────────────────────────────────────────────────────
+  curY = sectionHeader(curY, 'Piece & Materials') + 4;
+  const label_w = 135, pm_row_h = 21;
+  ['Description', 'Glass used (style / COE / color)', 'Glass Dimensions', 'Mold Type & Dimensions'].forEach(label => {
+    const baseline = curY + 14;
+    doc.setFont('helvetica', 'normal'); doc.setFontSize(8.5); ink(DARK_TEXT);
+    doc.text(label + ':', LEFT, baseline);
+    hline(LEFT + label_w, RIGHT, baseline + 2);
+    curY += pm_row_h;
+  });
+  curY += 5;
+
+  // ── GOALS ────────────────────────────────────────────────────────────────
+  curY = sectionHeader(curY, 'Goals') + 8;
+  dotGrid(LEFT, RIGHT, curY, curY + 30);
+  curY += 35;
+
+  // ── KILN PREP ─────────────────────────────────────────────────────────────
+  curY = sectionHeader(curY, 'Kiln Prep', 'shelf, release, position, etc.') + 8;
+  dotGrid(LEFT, RIGHT, curY, curY + 60);
+  curY += 65;
+
+  // ── FIRING SCHEDULE ───────────────────────────────────────────────────────
+  curY = sectionHeader(curY, 'Firing Schedule') + 4;
+
+  const col_widths = [20, 55, 55, 55, 55];
+  col_widths.push(CONTENT_W - col_widths.reduce((a, b) => a + b, 0));  // 295 for Notes
+  const headers = ['#', `RATE\n${rateUnitLabel()}`, `TARGET\n${unitLabel()}`, 'HOLD', 'SEGMENT\nTIME', 'NOTES'];
+  const N_DATA = 11;    // writable rows
+  const N_ROWS = 12;    // 11 data + 1 total (fits within Python sheet's 12-row table)
+  const header_h = 20, row_h = 18;
+  const table_h = header_h + N_ROWS * row_h;
+  const table_top = curY;
+
+  // Header background + text
+  fill(HEADER_FILL);
+  doc.rect(LEFT, table_top, CONTENT_W, header_h, 'F');
+  let hx = LEFT;
+  headers.forEach((label, idx) => {
+    doc.setFont('helvetica', 'bold'); doc.setFontSize(6.3); ink(ACCENT);
+    let ty = table_top + 8;
+    label.split('\n').forEach(ln => { doc.text(ln, hx + 3, ty); ty += 6.5; });
+    hx += col_widths[idx];
+  });
+
+  // Outer box + header divider
+  box(LEFT, table_top, CONTENT_W, table_h);
+  hline(LEFT, RIGHT, table_top + header_h);
+
+  // Column dividers (full table height)
+  let dvx = LEFT;
+  col_widths.slice(0, -1).forEach(w => {
+    dvx += w;
+    vline(dvx, table_top, table_top + table_h);
+  });
+
+  // Data rows 1–11
+  const calcs = calcSegments();
+  let ry = table_top + header_h;
+  for (let i = 0; i < N_DATA; i++) {
+    hline(LEFT, RIGHT, ry, FAINT, 0.5);
+    doc.setFont('helvetica', 'normal'); doc.setFontSize(6.5); ink(GREY);
+    doc.text(String(i + 1), LEFT + col_widths[0] / 2, ry + row_h - 6, { align: 'center' });
+
+    if (i < segments.length && calcs[i] && calcs[i].valid) {
+      const seg  = segments[i];
+      const calc = calcs[i];
+      doc.setFont('helvetica', 'normal'); doc.setFontSize(8); ink(INK);
+
+      const c0x = LEFT + col_widths[0];
+      doc.text(dispRate(seg.rate),   c0x + col_widths[1] - 3, ry + row_h - 6, { align: 'right' });
+      doc.text(dispTarget(seg.target), c0x + col_widths[1] + col_widths[2] - 3, ry + row_h - 6, { align: 'right' });
+
+      const holdDecimal = parseFloat(seg.hold) || 0;
+      if (holdDecimal > 0) {
+        const holdCX = c0x + col_widths[1] + col_widths[2] + col_widths[3] / 2;
+        doc.text(fmtTime(holdDecimal), holdCX, ry + row_h - 6, { align: 'center' });
+      }
+
+      const timeX = c0x + col_widths[1] + col_widths[2] + col_widths[3] + col_widths[4] - 3;
+      const timeStr = fmtTime(calc.stageTime) + (calc.isAfap ? ' est.' : '');
+      doc.text(timeStr, timeX, ry + row_h - 6, { align: 'right' });
+    }
+    ry += row_h;
+  }
+
+  // Row 12 — TOTAL (filled background, heavier top rule)
+  hline(LEFT, RIGHT, ry, BORDER_LIGHT, 0.6);
+  fill(HEADER_FILL);
+  doc.rect(LEFT, ry, CONTENT_W, row_h, 'F');
+
+  const validCalcs = calcs.filter(c => c.valid);
+  const totalHrs   = validCalcs.reduce((s, c) => s + c.stageTime, 0);
+  const segTimeLeft = LEFT + col_widths[0] + col_widths[1] + col_widths[2] + col_widths[3];
+  const segTimeRight = segTimeLeft + col_widths[4];
+
+  // "TOTAL" right-aligned in the HOLD column (left of the divider), value in SEGMENT TIME
+  doc.setFont('helvetica', 'bold'); doc.setFontSize(6.3); ink(ACCENT);
+  doc.text('TOTAL', segTimeLeft - 3, ry + row_h - 6, { align: 'right' });
+
+  doc.setFont('helvetica', 'bold'); doc.setFontSize(9); ink(INK);
+  doc.text(fmtTime(totalHrs), segTimeRight - 3, ry + row_h - 5, { align: 'right' });
+
+  curY = table_top + table_h + 10;
+
+  // ── RESULTS & NOTES ───────────────────────────────────────────────────────
+  curY = sectionHeader(curY, 'Results & Notes') + 10;
+  dotGrid(LEFT, RIGHT, curY, PAGE_H - MARGIN_BOTTOM);
+
+  // ── Save ──────────────────────────────────────────────────────────────────
+  const today = new Date().toISOString().split('T')[0];
+  doc.save(`firing-log-${today}.pdf`);
+}
+
+document.getElementById('pdf-btn').addEventListener('click', generatePDF);
 </script>
 </body>
 </html>
