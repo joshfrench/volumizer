@@ -527,10 +527,115 @@ notesModalEl.addEventListener('click', e => {
   if (e.target === notesModalEl) closeNotesModal();
 });
 
-// ── Graph (stub — implemented in Task 5) ──────────────────────────────────
+// ── Graph ──────────────────────────────────────────────────────────────────
 function renderGraph(calcs) {
-  // implemented in Task 5
-  document.getElementById('graph-card').style.display = 'none';
+  const graphCard = document.getElementById('graph-card');
+  const svgEl     = document.getElementById('graph');
+  const afapNote  = document.getElementById('afap-note');
+
+  const validCalcs = calcs.filter(c => c.valid);
+  if (validCalcs.length === 0) {
+    graphCard.style.display = 'none';
+    return;
+  }
+  graphCard.style.display = 'block';
+  afapNote.style.display  = calcs.some(c => c.isAfap && c.valid) ? 'block' : 'none';
+
+  // ── SVG coordinate system ─────────────────────────────────────────────
+  // viewBox: 0 0 400 160
+  // Plot area: x 36–390, y 8–140  (PAD_L=36, PAD_R=10, PAD_T=8, PAD_B=20)
+  const PAD_L = 36, PAD_R = 10, PAD_T = 8, PAD_B = 20;
+  const W = 400, H = 160;
+  const plotW = W - PAD_L - PAD_R;  // 354
+  const plotH = H - PAD_T - PAD_B;  // 132
+
+  const totalTime = calcs[calcs.length - 1].cumTime || 1;
+  const maxTemp   = Math.max(...segments.map(s => parseFloat(s.target) || 0));
+  const yMax      = maxTemp * 1.12;  // 12% headroom for peak label
+  const yMin      = 0;
+
+  const tx = t => PAD_L + (t / totalTime) * plotW;
+  const ty = T => (PAD_T + plotH) - ((T - yMin) / (yMax - yMin)) * plotH;
+
+  // ── Build polyline points ──────────────────────────────────────────────
+  const pts = [`${tx(0).toFixed(1)},${ty(AMBIENT_TEMP).toFixed(1)}`];
+  segments.forEach((seg, i) => {
+    const calc   = calcs[i];
+    if (!calc?.valid) return;
+    const target = parseFloat(seg.target);
+    const hold   = parseFloat(seg.hold) || 0;
+    const endRamp = calc.cumTime - hold;
+    pts.push(`${tx(endRamp).toFixed(1)},${ty(target).toFixed(1)}`);
+    if (hold > 0) {
+      pts.push(`${tx(calc.cumTime).toFixed(1)},${ty(target).toFixed(1)}`);
+    }
+  });
+
+  // ── Find peak (highest target temperature) ────────────────────────────
+  let peakTemp = 0, peakTime = 0;
+  segments.forEach((seg, i) => {
+    const calc   = calcs[i];
+    if (!calc?.valid) return;
+    const target = parseFloat(seg.target) || 0;
+    const hold   = parseFloat(seg.hold) || 0;
+    if (target > peakTemp) {
+      peakTemp = target;
+      peakTime = calc.cumTime - hold; // end of ramp to this temp
+    }
+  });
+
+  // ── Horizontal grid lines at 500°, 1000°, 1500° ──────────────────────
+  const gridLines = [500, 1000, 1500]
+    .filter(t => t > yMin && t < yMax)
+    .map(t => `
+      <line x1="${PAD_L}" y1="${ty(t).toFixed(1)}" x2="${W - PAD_R}" y2="${ty(t).toFixed(1)}"
+            stroke="var(--border)" stroke-width="0.5" stroke-dasharray="2,3"/>
+      <text x="${PAD_L - 4}" y="${(ty(t) + 3).toFixed(1)}"
+            font-size="8" fill="var(--text-secondary)" text-anchor="end">${t}°</text>
+    `).join('');
+
+  // ── X-axis tick labels at 0%, 25%, 50%, 75%, 100% of total time ───────
+  const xTicks = [0, 0.25, 0.5, 0.75, 1.0].map(f => {
+    const t    = f * totalTime;
+    const h    = Math.round(t);
+    const label = `${h}h`;
+    const anchor = f === 0 ? 'start' : f === 1.0 ? 'end' : 'middle';
+    return `<text x="${tx(t).toFixed(1)}" y="${H - 4}"
+                  font-size="8" fill="var(--text-secondary)" text-anchor="${anchor}">${label}</text>`;
+  }).join('');
+
+  // ── Peak marker ────────────────────────────────────────────────────────
+  const px = tx(peakTime);
+  const py = ty(peakTemp);
+  // keep label from clipping right edge
+  const labelX = Math.min(px + 4, W - PAD_R - 32);
+  const peakMarker = `
+    <circle cx="${px.toFixed(1)}" cy="${py.toFixed(1)}" r="3" fill="var(--accent)"/>
+    <text x="${labelX.toFixed(1)}" y="${(py - 4).toFixed(1)}"
+          font-size="8" fill="var(--accent)" font-weight="500">${Math.round(peakTemp)}°F</text>
+  `;
+
+  // ── Compose SVG ────────────────────────────────────────────────────────
+  svgEl.innerHTML = `
+    <!-- axes -->
+    <line x1="${PAD_L}" y1="${PAD_T}" x2="${PAD_L}" y2="${PAD_T + plotH}"
+          stroke="var(--border)" stroke-width="0.5"/>
+    <line x1="${PAD_L}" y1="${PAD_T + plotH}" x2="${W - PAD_R}" y2="${PAD_T + plotH}"
+          stroke="var(--border)" stroke-width="0.5"/>
+    <!-- y-min label -->
+    <text x="${PAD_L - 4}" y="${(ty(0) + 3).toFixed(1)}"
+          font-size="8" fill="var(--text-secondary)" text-anchor="end">0°</text>
+    <!-- grid lines + y labels -->
+    ${gridLines}
+    <!-- x labels -->
+    ${xTicks}
+    <!-- firing curve -->
+    <polyline points="${pts.join(' ')}"
+              fill="none" stroke="var(--accent)" stroke-width="2"
+              stroke-linejoin="round" stroke-linecap="round"/>
+    <!-- peak marker -->
+    ${peakMarker}
+  `;
 }
 
 // ── Bootstrap ─────────────────────────────────────────────────────────────
