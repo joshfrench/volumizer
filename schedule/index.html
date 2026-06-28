@@ -394,7 +394,7 @@ segBody.addEventListener('blur', e => {
 
 segBody.addEventListener('keydown', e => {
   // Enter on holdM: add segment and focus new row's rate field
-  if (e.key === 'Enter' && e.target.dataset.field === 'holdM') {
+  if (e.key === 'Enter' && (e.target.dataset.field === 'holdH' || e.target.dataset.field === 'holdM')) {
     e.preventDefault();
     segments.push({ rate: '', target: '', hold: '' });
     render();
