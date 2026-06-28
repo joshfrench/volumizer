@@ -550,9 +550,22 @@ function renderGraph(calcs) {
   const plotH = H - PAD_T - PAD_B;  // 132
 
   const totalTime = calcs[calcs.length - 1].cumTime || 1;
-  const maxTemp   = Math.max(...segments.map(s => parseFloat(s.target) || 0));
-  const yMax      = maxTemp * 1.12;  // 12% headroom for peak label
-  const yMin      = 0;
+
+  // ── Find peak first (needed to compute yMax before tx/ty) ─────────────
+  let peakTemp = 0, peakTime = 0;
+  segments.forEach((seg, i) => {
+    const calc   = calcs[i];
+    if (!calc?.valid) return;
+    const target = parseFloat(seg.target) || 0;
+    const hold   = parseFloat(seg.hold) || 0;
+    if (target > peakTemp) {
+      peakTemp = target;
+      peakTime = calc.cumTime - hold;
+    }
+  });
+
+  const yMax = peakTemp > 0 ? peakTemp * 1.12 : 200;
+  const yMin = 0;
 
   const tx = t => PAD_L + (t / totalTime) * plotW;
   const ty = T => (PAD_T + plotH) - ((T - yMin) / (yMax - yMin)) * plotH;
@@ -571,19 +584,6 @@ function renderGraph(calcs) {
     }
   });
 
-  // ── Find peak (highest target temperature) ────────────────────────────
-  let peakTemp = 0, peakTime = 0;
-  segments.forEach((seg, i) => {
-    const calc   = calcs[i];
-    if (!calc?.valid) return;
-    const target = parseFloat(seg.target) || 0;
-    const hold   = parseFloat(seg.hold) || 0;
-    if (target > peakTemp) {
-      peakTemp = target;
-      peakTime = calc.cumTime - hold; // end of ramp to this temp
-    }
-  });
-
   // ── Horizontal grid lines at 500°, 1000°, 1500° ──────────────────────
   const gridLines = [500, 1000, 1500]
     .filter(t => t > yMin && t < yMax)
@@ -597,8 +597,7 @@ function renderGraph(calcs) {
   // ── X-axis tick labels at 0%, 25%, 50%, 75%, 100% of total time ───────
   const xTicks = [0, 0.25, 0.5, 0.75, 1.0].map(f => {
     const t    = f * totalTime;
-    const h    = Math.round(t);
-    const label = `${h}h`;
+    const label = totalTime < 4 ? `${t.toFixed(1)}h` : `${Math.round(t)}h`;
     const anchor = f === 0 ? 'start' : f === 1.0 ? 'end' : 'middle';
     return `<text x="${tx(t).toFixed(1)}" y="${H - 4}"
                   font-size="8" fill="var(--text-secondary)" text-anchor="${anchor}">${label}</text>`;
