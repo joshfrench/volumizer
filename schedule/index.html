@@ -7,7 +7,290 @@
 <meta name="description" content="Free kiln schedule calculator for glass artists. Define firing segments, calculate stage times, and visualize the firing curve.">
 <link rel="stylesheet" href="../theme.css">
 <style>
-  /* styles go here in later tasks */
+  @keyframes fadein {
+    from { opacity: 0; transform: translateY(6px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  /* ── Table card ────────────────────────────── */
+  .table-card {
+    background: var(--card);
+    border: 0.5px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+    margin-bottom: 0.75rem;
+  }
+
+  .col-header {
+    display: grid;
+    grid-template-columns: 16px 58px 68px 42px 54px 1fr 22px;
+    gap: 5px;
+    padding: 7px 10px;
+    background: var(--bg);
+    font-size: 10px;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    align-items: center;
+  }
+
+  .col-header span { display: block; }
+  .col-header .h-rate,
+  .col-header .h-target,
+  .col-header .h-hold,
+  .col-header .h-time { text-align: right; }
+
+  /* ── Segment rows ──────────────────────────── */
+  .seg-row {
+    display: grid;
+    grid-template-columns: 16px 58px 68px 42px 54px 1fr 22px;
+    gap: 5px;
+    padding: 7px 10px;
+    border-top: 0.5px solid var(--border);
+    align-items: center;
+    animation: fadein 0.2s ease;
+  }
+
+  .seg-num {
+    font-size: 11px;
+    color: var(--text-secondary);
+  }
+
+  /* Number inputs shared style */
+  .seg-row input {
+    width: 100%;
+    font-size: 13px;
+    padding: 4px 5px;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    background: var(--bg);
+    color: var(--text);
+    -webkit-appearance: none;
+    -moz-appearance: textfield;
+    text-align: right;
+  }
+
+  .seg-row input::-webkit-outer-spin-button,
+  .seg-row input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+
+  .seg-row input:focus {
+    outline: none;
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px var(--accent-light);
+  }
+
+  /* Rate input left-aligns normally, right when AFAP */
+  .seg-rate { text-align: right; }
+  .seg-rate.is-afap { font-style: italic; color: var(--text-secondary); }
+
+  /* Target and hold: number inside a wrapper with unit suffix */
+  .field-wrap {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+  }
+
+  .field-wrap input { flex: 1; min-width: 0; }
+
+  .unit {
+    font-size: 10px;
+    color: var(--text-secondary);
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+
+  /* Calculated time cell */
+  .seg-time {
+    font-size: 12px;
+    color: var(--text);
+    text-align: right;
+    white-space: nowrap;
+    line-height: 1.2;
+  }
+
+  .est {
+    display: block;
+    font-size: 9px;
+    color: var(--text-secondary);
+    text-align: right;
+  }
+
+  /* Notes chip */
+  .note-chip {
+    font-size: 11px;
+    border-radius: 6px;
+    padding: 3px 6px;
+    cursor: pointer;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .note-chip.filled {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    color: var(--text-secondary);
+  }
+
+  .note-chip.empty {
+    border: 1px dashed var(--border);
+    color: var(--border);
+  }
+
+  /* Delete button */
+  .del-btn {
+    background: none;
+    border: none;
+    color: var(--danger);
+    font-size: 18px;
+    line-height: 1;
+    cursor: pointer;
+    padding: 0;
+    text-align: center;
+    -webkit-appearance: none;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  /* ── Add segment row ────────────────────────── */
+  .add-row {
+    padding: 8px 10px;
+    border-top: 0.5px solid var(--border);
+  }
+
+  .add-btn {
+    width: 100%;
+    padding: 8px;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--accent);
+    background: none;
+    border: 1px dashed var(--accent);
+    border-radius: 8px;
+    cursor: pointer;
+    -webkit-appearance: none;
+  }
+
+  /* ── Total time ─────────────────────────────── */
+  #total-row {
+    display: none;
+    justify-content: flex-end;
+    align-items: baseline;
+    gap: 10px;
+    margin-bottom: 1rem;
+    padding: 0 2px;
+  }
+
+  .total-label {
+    font-size: 12px;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+
+  #total-value {
+    font-size: 22px;
+    font-weight: 500;
+  }
+
+  /* ── Graph card ─────────────────────────────── */
+  #graph-card {
+    display: none;
+    background: var(--card);
+    border: 0.5px solid var(--border);
+    border-radius: 12px;
+    padding: 12px;
+    margin-bottom: 1.5rem;
+  }
+
+  .graph-label {
+    font-size: 11px;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    margin-bottom: 8px;
+  }
+
+  #graph { display: block; width: 100%; height: auto; overflow: visible; }
+
+  #afap-note {
+    display: none;
+    font-size: 10px;
+    color: var(--text-secondary);
+    text-align: right;
+    margin: 4px 0 0;
+  }
+
+  /* ── Notes modal ────────────────────────────── */
+  .modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.35);
+    align-items: flex-end;
+    justify-content: center;
+    z-index: 100;
+  }
+
+  .modal-overlay.open { display: flex; }
+
+  .modal-sheet {
+    background: var(--card);
+    border-radius: 16px 16px 0 0;
+    padding: 20px;
+    width: 100%;
+    max-width: 480px;
+  }
+
+  .modal-seg-title {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text);
+    margin: 0 0 3px;
+  }
+
+  .modal-seg-summary {
+    font-size: 11px;
+    color: var(--text-secondary);
+    margin: 0 0 12px;
+  }
+
+  .modal-sheet textarea {
+    width: 100%;
+    font-size: 14px;
+    font-family: inherit;
+    padding: 10px 12px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: var(--bg);
+    color: var(--text);
+    resize: none;
+    height: 90px;
+    -webkit-appearance: none;
+    box-sizing: border-box;
+  }
+
+  .modal-sheet textarea:focus {
+    outline: none;
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px var(--accent-light);
+  }
+
+  .modal-done {
+    margin-top: 10px;
+    width: 100%;
+    padding: 14px;
+    font-size: 16px;
+    font-weight: 500;
+    color: white;
+    background: var(--accent);
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    -webkit-appearance: none;
+  }
+
+  .modal-done:active { opacity: 0.85; }
 </style>
 </head>
 <body>
@@ -15,7 +298,52 @@
   <header>
     <h1>Kiln Schedule</h1>
   </header>
-  <p style="color:var(--text-secondary);font-size:14px;text-align:center">Coming soon</p>
+
+  <!-- Segment table -->
+  <div class="table-card">
+    <div class="col-header">
+      <span>#</span>
+      <span class="h-rate">Rate</span>
+      <span class="h-target">Target</span>
+      <span class="h-hold">Hold</span>
+      <span class="h-time">Time</span>
+      <span></span>
+      <span></span>
+    </div>
+    <div id="seg-body">
+      <!-- rows rendered by JS -->
+    </div>
+    <div class="add-row">
+      <button class="add-btn" id="add-btn">+ Add segment</button>
+    </div>
+  </div>
+
+  <!-- Total time -->
+  <div id="total-row">
+    <span class="total-label">Total</span>
+    <span id="total-value"></span>
+  </div>
+
+  <!-- Graph -->
+  <div id="graph-card">
+    <div class="graph-label">Firing Curve</div>
+    <svg id="graph" viewBox="0 0 400 160" xmlns="http://www.w3.org/2000/svg"></svg>
+    <p id="afap-note">AFAP cooling estimated at 300°F/hr</p>
+  </div>
 </div>
+
+<!-- Notes modal -->
+<div class="modal-overlay" id="notes-modal">
+  <div class="modal-sheet" id="notes-sheet">
+    <p class="modal-seg-title" id="modal-title"></p>
+    <p class="modal-seg-summary" id="modal-summary"></p>
+    <textarea id="modal-textarea" placeholder="Notes…"></textarea>
+    <button class="modal-done" id="modal-done">Done</button>
+  </div>
+</div>
+
+<script>
+// JS goes here in later tasks
+</script>
 </body>
 </html>
