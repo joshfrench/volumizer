@@ -492,11 +492,39 @@ document.getElementById('add-btn').addEventListener('click', () => {
   rows[rows.length - 1]?.scrollIntoView({ block: 'nearest' });
 });
 
-// ── Notes modal (stub — wired up in Task 4) ────────────────────────────────
+// ── Notes modal ────────────────────────────────────────────────────────────
 function openNotesModal(index) {
-  // implemented in Task 4
-  console.log('openNotesModal', index);
+  modalIndex = index;
+  const seg = segments[index];
+
+  document.getElementById('modal-title').textContent = `Segment ${index + 1} — notes`;
+
+  const rateStr   = isAfap(seg.rate) ? 'AFAP' : (seg.rate ? `${seg.rate}°F/hr` : '—');
+  const targetStr = seg.target ? `${seg.target}°F` : '—';
+  const holdStr   = parseFloat(seg.hold) > 0 ? `hold ${seg.hold}h` : 'no hold';
+  document.getElementById('modal-summary').textContent = `${rateStr} → ${targetStr} · ${holdStr}`;
+
+  const ta = document.getElementById('modal-textarea');
+  ta.value = seg.notes;
+  document.getElementById('notes-modal').classList.add('open');
+  ta.focus();
 }
+
+function closeNotesModal() {
+  if (modalIndex >= 0) {
+    segments[modalIndex].notes = document.getElementById('modal-textarea').value;
+    render();
+  }
+  document.getElementById('notes-modal').classList.remove('open');
+  modalIndex = -1;
+}
+
+document.getElementById('modal-done').addEventListener('click', closeNotesModal);
+
+// close when tapping the overlay backdrop (not the sheet itself)
+document.getElementById('notes-modal').addEventListener('click', e => {
+  if (e.target === document.getElementById('notes-modal')) closeNotesModal();
+});
 
 // ── Graph (stub — implemented in Task 5) ──────────────────────────────────
 function renderGraph(calcs) {
