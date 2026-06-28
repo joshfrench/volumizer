@@ -125,26 +125,6 @@
   .seg-rate { text-align: right; }
   .seg-rate.is-afap { font-style: italic; color: var(--text-secondary); }
 
-  /* Hold h/m pair */
-  .hold-pair {
-    display: flex;
-    align-items: center;
-    gap: 2px;
-  }
-  .hold-pair input {
-    width: 0;
-    flex: 1;
-    min-width: 0;
-    text-align: center;
-    padding-left: 2px;
-    padding-right: 2px;
-  }
-  .hold-unit {
-    font-size: 10px;
-    color: var(--text-secondary);
-    flex-shrink: 0;
-  }
-
   /* Calculated time cell */
   .seg-time {
     font-size: 12px;
@@ -369,9 +349,6 @@ function render() {
     const timeStr = calc.valid ? fmtTime(calc.stageTime) : '—';
     const estSpan = calc.isAfap && calc.valid ? ' <span class="est">est.</span>' : '';
     const rateClass = isAfap(seg.rate) ? ' is-afap' : '';
-    const holdDecimal = parseFloat(seg.hold) || 0;
-    const holdH = holdDecimal > 0 ? String(Math.floor(holdDecimal)) : '';
-    const holdM = holdDecimal > 0 ? String(Math.round((holdDecimal % 1) * 60)) : '';
     const isExpanded = expandedIndex === i;
     const caret   = isExpanded ? '▲' : '▼';
     const noteBtn = `<button type="button" class="note-btn${seg.notes ? ' has-notes' : ''}" data-action="note" data-index="${i}" tabindex="-1">Notes ${caret}</button>`;
@@ -388,14 +365,8 @@ function render() {
                value="${esc(seg.rate)}" data-field="rate" placeholder="°F/hr">
         <input type="number" inputmode="decimal"
                value="${esc(seg.target)}" data-field="target" placeholder="°F">
-        <div class="hold-pair">
-          <input type="number" inputmode="numeric" min="0" step="1"
-                 value="${esc(holdH)}" data-field="holdH" placeholder="0">
-          <span class="hold-unit">h</span>
-          <input type="number" inputmode="numeric" min="0" max="59" step="1"
-                 value="${esc(holdM)}" data-field="holdM" placeholder="0">
-          <span class="hold-unit">m</span>
-        </div>
+        <input type="number" inputmode="decimal"
+               value="${esc(seg.hold)}" data-field="hold" placeholder="h">
         <div class="seg-time">${timeStr}${estSpan}</div>
         ${noteBtn}
         <button type="button" class="del-btn" data-action="delete" data-index="${i}" aria-label="Remove segment ${i + 1}" tabindex="-1">×</button>
@@ -464,14 +435,6 @@ segBody.addEventListener('input', e => {
   const i     = parseInt(row.dataset.index, 10);
   const field = e.target.dataset.field;
   if (!field) return;
-  if (field === 'holdH' || field === 'holdM') {
-    const h = parseFloat(row.querySelector('[data-field="holdH"]').value) || 0;
-    const m = parseFloat(row.querySelector('[data-field="holdM"]').value) || 0;
-    const decimal = h + m / 60;
-    segments[i].hold = decimal > 0 ? String(decimal) : '';
-    updateCalcs();
-    return;
-  }
   segments[i][field] = e.target.value;
   if (field !== 'rate') updateCalcs();
 });
@@ -492,8 +455,8 @@ segBody.addEventListener('blur', e => {
 }, true /* useCapture — blur doesn't bubble */);
 
 segBody.addEventListener('keydown', e => {
-  // Enter on holdM: add segment and focus new row's rate field
-  if (e.key === 'Enter' && e.target.dataset.field === 'holdM') {
+  // Enter on hold: add segment and focus new row's rate field
+  if (e.key === 'Enter' && e.target.dataset.field === 'hold') {
     e.preventDefault();
     segments.push({ rate: '', target: '', hold: '', notes: '' });
     render();
@@ -513,10 +476,8 @@ segBody.addEventListener('keydown', e => {
 
     if (field === 'target') {
       document.querySelector(`.seg-row[data-index="${i}"] [data-field="rate"]`)?.focus();
-    } else if (field === 'holdH') {
+    } else if (field === 'hold') {
       document.querySelector(`.seg-row[data-index="${i}"] [data-field="target"]`)?.focus();
-    } else if (field === 'holdM') {
-      document.querySelector(`.seg-row[data-index="${i}"] [data-field="holdH"]`)?.focus();
     } else if (field === 'rate') {
       if (i === 0) return;
       const seg = segments[i];
@@ -527,7 +488,7 @@ segBody.addEventListener('keydown', e => {
         segments.splice(i, 1);
         render();
       }
-      document.querySelector(`.seg-row[data-index="${i - 1}"] [data-field="holdM"]`)?.focus();
+      document.querySelector(`.seg-row[data-index="${i - 1}"] [data-field="hold"]`)?.focus();
     }
   }
 });
