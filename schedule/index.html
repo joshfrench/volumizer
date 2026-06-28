@@ -128,21 +128,14 @@
   /* Hold h/m pair */
   .hold-pair {
     display: flex;
-    align-items: center;
-    gap: 2px;
+    gap: 3px;
+    margin-left: 16px;
   }
   .hold-pair input {
-    width: 0;
     flex: 1;
+    width: 0;
     min-width: 0;
     text-align: center;
-    padding-left: 2px;
-    padding-right: 2px;
-  }
-  .hold-unit {
-    font-size: 10px;
-    color: var(--text-secondary);
-    flex-shrink: 0;
   }
 
   /* Calculated time cell */
@@ -390,11 +383,9 @@ function render() {
                value="${esc(seg.target)}" data-field="target" placeholder="°F">
         <div class="hold-pair">
           <input type="number" inputmode="numeric" min="0" step="1"
-                 value="${esc(holdH)}" data-field="holdH" placeholder="0">
-          <span class="hold-unit">h</span>
+                 value="${esc(holdH)}" data-field="holdH" placeholder="h">
           <input type="number" inputmode="numeric" min="0" max="59" step="1"
-                 value="${esc(holdM)}" data-field="holdM" placeholder="0">
-          <span class="hold-unit">m</span>
+                 value="${esc(holdM)}" data-field="holdM" placeholder="m">
         </div>
         <div class="seg-time">${timeStr}${estSpan}</div>
         ${noteBtn}
