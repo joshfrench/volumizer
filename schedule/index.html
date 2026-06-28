@@ -511,7 +511,7 @@ function openNotesModal(index) {
 }
 
 function closeNotesModal() {
-  if (modalIndex >= 0) {
+  if (modalIndex >= 0 && modalIndex < segments.length) {
     segments[modalIndex].notes = document.getElementById('modal-textarea').value;
     render();
   }
@@ -522,8 +522,9 @@ function closeNotesModal() {
 document.getElementById('modal-done').addEventListener('click', closeNotesModal);
 
 // close when tapping the overlay backdrop (not the sheet itself)
-document.getElementById('notes-modal').addEventListener('click', e => {
-  if (e.target === document.getElementById('notes-modal')) closeNotesModal();
+const notesModalEl = document.getElementById('notes-modal');
+notesModalEl.addEventListener('click', e => {
+  if (e.target === notesModalEl) closeNotesModal();
 });
 
 // ── Graph (stub — implemented in Task 5) ──────────────────────────────────
