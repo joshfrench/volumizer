@@ -23,7 +23,7 @@
 
   .col-header {
     display: grid;
-    grid-template-columns: 16px 1fr 1fr 1fr 54px 58px 22px;
+    grid-template-columns: 16px 1fr 1fr 1fr 54px 22px;
     gap: 5px;
     padding: 7px 10px;
     background: var(--bg);
@@ -43,7 +43,7 @@
   /* ── Segment rows ──────────────────────────── */
   .seg-row {
     display: grid;
-    grid-template-columns: 16px 1fr 1fr 1fr 54px 58px 22px;
+    grid-template-columns: 16px 1fr 1fr 1fr 54px 22px;
     gap: 5px;
     padding: 7px 10px;
     border-top: 0.5px solid var(--border);
@@ -54,49 +54,6 @@
   .seg-num {
     font-size: 11px;
     color: var(--text-secondary);
-  }
-
-  /* ── Inline notes expansion ─────────────────── */
-  .seg-notes {
-    padding: 6px 10px 10px;
-    border-top: 0.5px solid var(--border);
-    background: var(--bg);
-  }
-
-  .seg-notes textarea {
-    width: 100%;
-    font-size: 14px;
-    font-family: inherit;
-    padding: 8px 10px;
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    background: var(--card);
-    color: var(--text);
-    resize: none;
-    height: 72px;
-    -webkit-appearance: none;
-    box-sizing: border-box;
-  }
-
-  .seg-notes textarea:focus {
-    outline: none;
-    border-color: var(--accent);
-    box-shadow: 0 0 0 3px var(--accent-light);
-  }
-
-  .seg-notes-done {
-    display: block;
-    width: 100%;
-    margin-top: 6px;
-    padding: 7px;
-    font-size: 13px;
-    font-weight: 500;
-    color: var(--accent);
-    background: none;
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    cursor: pointer;
-    -webkit-appearance: none;
   }
 
   /* Number inputs shared style */
@@ -152,27 +109,6 @@
     font-size: 9px;
     color: var(--text-secondary);
     text-align: right;
-  }
-
-  /* Note disclosure button */
-  .note-btn {
-    width: 100%;
-    font-size: 11px;
-    font-family: inherit;
-    color: var(--text-secondary);
-    background: none;
-    border: 1px solid var(--border);
-    border-radius: 6px;
-    padding: 8px 5px;
-    cursor: pointer;
-    white-space: nowrap;
-    text-align: center;
-    -webkit-tap-highlight-color: transparent;
-  }
-
-  .note-btn.has-notes {
-    color: var(--text);
-    border-color: var(--text-secondary);
   }
 
   /* Delete button */
@@ -275,7 +211,6 @@
       <span class="h-hold">Hold</span>
       <span class="h-time">Time</span>
       <span></span>
-      <span></span>
     </div>
     <div id="seg-body">
       <!-- rows rendered by JS -->
@@ -305,9 +240,7 @@ const AMBIENT_TEMP = 70;  // °F — assumed starting temperature
 const AFAP_RATE    = 300; // °F/hr — fixed estimate for "as fast as possible"
 
 // ── State ──────────────────────────────────────────────────────────────────
-let segments = [{ rate: '', target: '', hold: '', notes: '' }];
-let expandedIndex    = -1;
-let lastFocusedField = null; // { index, field } — updated on every input focus
+let segments = [{ rate: '', target: '', hold: '' }];
 
 // ── Helpers ────────────────────────────────────────────────────────────────
 function isAfap(val) {
@@ -365,15 +298,6 @@ function render() {
     const holdDecimal = parseFloat(seg.hold) || 0;
     const holdH = holdDecimal > 0 ? String(Math.floor(holdDecimal)) : '';
     const holdM = holdDecimal > 0 ? String(Math.round((holdDecimal % 1) * 60)) : '';
-    const isExpanded = expandedIndex === i;
-    const caret   = isExpanded ? '▲' : '▼';
-    const noteBtn = `<button type="button" class="note-btn${seg.notes ? ' has-notes' : ''}" data-action="note" data-index="${i}" tabindex="-1">Notes ${caret}</button>`;
-    const notesRow = isExpanded ? `
-      <div class="seg-notes" data-index="${i}">
-        <textarea data-action="notes-input" data-index="${i}" placeholder="Notes…">${esc(seg.notes)}</textarea>
-        <button type="button" class="seg-notes-done" data-action="collapse" data-index="${i}">Done</button>
-      </div>` : '';
-
     return `
       <div class="seg-row" data-index="${i}">
         <span class="seg-num">${i + 1}</span>
@@ -388,10 +312,8 @@ function render() {
                  value="${esc(holdM)}" data-field="holdM" placeholder="m">
         </div>
         <div class="seg-time">${timeStr}${estSpan}</div>
-        ${noteBtn}
         <button type="button" class="del-btn" data-action="delete" data-index="${i}" aria-label="Remove segment ${i + 1}" tabindex="-1">×</button>
-      </div>
-      ${notesRow}`;
+      </div>`;
   }).join('');
 
   // Total time
@@ -436,20 +358,8 @@ function updateCalcs() {
   if (document.activeElement?.dataset?.field !== 'target') renderGraph(calcs);
 }
 
-// Track last focused input field so Notes collapse can restore it
-segBody.addEventListener('focus', e => {
-  const row = e.target.closest('.seg-row');
-  if (!row || !e.target.dataset.field) return;
-  lastFocusedField = { index: parseInt(row.dataset.index, 10), field: e.target.dataset.field };
-}, true /* useCapture — focus doesn't bubble */);
-
 // input: update state; patch calcs without rebuilding input rows
 segBody.addEventListener('input', e => {
-  if (e.target.dataset.action === 'notes-input') {
-    const i = parseInt(e.target.dataset.index, 10);
-    segments[i].notes = e.target.value;
-    return;
-  }
   const row = e.target.closest('.seg-row');
   if (!row) return;
   const i     = parseInt(row.dataset.index, 10);
@@ -486,7 +396,7 @@ segBody.addEventListener('keydown', e => {
   // Enter on holdM: add segment and focus new row's rate field
   if (e.key === 'Enter' && e.target.dataset.field === 'holdM') {
     e.preventDefault();
-    segments.push({ rate: '', target: '', hold: '', notes: '' });
+    segments.push({ rate: '', target: '', hold: '' });
     render();
     const rows = document.querySelectorAll('.seg-row');
     rows[rows.length - 1]?.querySelector('input')?.focus();
@@ -513,8 +423,6 @@ segBody.addEventListener('keydown', e => {
       const seg = segments[i];
       const deleteRow = seg.rate === '' && seg.target === '' && seg.hold === '' && segments.length > 1;
       if (deleteRow) {
-        if (expandedIndex === i) expandedIndex = -1;
-        else if (expandedIndex > i) expandedIndex--;
         segments.splice(i, 1);
         render();
       }
@@ -523,57 +431,25 @@ segBody.addEventListener('keydown', e => {
   }
 });
 
-// click: delete or open notes
+// click: delete
 segBody.addEventListener('click', e => {
-  const action = e.target.dataset.action || e.target.closest('[data-action]')?.dataset.action;
-  const index  = parseInt(
-    e.target.dataset.index ?? e.target.closest('[data-index]')?.dataset.index, 10
-  );
+  if (e.target.dataset.action !== 'delete') return;
+  const index = parseInt(e.target.dataset.index, 10);
   if (isNaN(index)) return;
-
-  if (action === 'delete') {
-    if (expandedIndex === index) expandedIndex = -1;
-    else if (expandedIndex > index) expandedIndex--;
-    segments.splice(index, 1);
-    if (segments.length === 0) {
-      segments.push({ rate: '', target: '', hold: '', notes: '' });
-    }
-    render();
-  } else if (action === 'note') {
-    if (expandedIndex === index) {
-      collapseNotes();
-    } else {
-      expandedIndex = index;
-      render();
-      document.querySelector(`.seg-notes[data-index="${index}"] textarea`)?.focus();
-    }
-  } else if (action === 'collapse') {
-    collapseNotes();
-  }
+  segments.splice(index, 1);
+  if (segments.length === 0) segments.push({ rate: '', target: '', hold: '' });
+  render();
 });
 
 // add segment
 document.getElementById('add-btn').addEventListener('click', () => {
-  segments.push({ rate: '', target: '', hold: '', notes: '' });
+  segments.push({ rate: '', target: '', hold: '' });
   render();
   // scroll new row into view
   const rows = document.querySelectorAll('.seg-row');
   const lastRow = rows[rows.length - 1];
   lastRow?.scrollIntoView({ block: 'nearest' });
   lastRow?.querySelector('[data-field="rate"]')?.focus();
-});
-
-function collapseNotes() {
-  expandedIndex = -1;
-  render();
-  if (lastFocusedField) {
-    const { index, field } = lastFocusedField;
-    document.querySelector(`.seg-row[data-index="${index}"] [data-field="${field}"]`)?.focus();
-  }
-}
-
-document.addEventListener('keydown', e => {
-  if (e.key === 'Escape' && expandedIndex >= 0) collapseNotes();
 });
 
 // ── Graph ──────────────────────────────────────────────────────────────────
