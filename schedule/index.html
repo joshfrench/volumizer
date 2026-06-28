@@ -622,15 +622,29 @@ segBody.addEventListener('blur', e => {
 }, true /* useCapture — blur doesn't bubble */);
 
 segBody.addEventListener('keydown', e => {
-  // Enter on any field: add segment and focus new row's rate field
+  // Enter on any field: advance to next row, or add one if on the last non-empty row
   if (e.key === 'Enter' && e.target.dataset.field) {
     e.preventDefault();
-    segments.push({ rate: '', target: '', hold: '' });
-    render();
-    requestAnimationFrame(() => {
-      const rows = document.querySelectorAll('.seg-row');
-      rows[rows.length - 1]?.querySelector('input')?.focus();
-    });
+    const row = e.target.closest('.seg-row');
+    if (!row) return;
+    const i = parseInt(row.dataset.index, 10);
+    const isLastRow = i === segments.length - 1;
+    if (!isLastRow) {
+      // Not on the bottom row — just focus the next row's rate field
+      document.querySelector(`.seg-row[data-index="${i + 1}"] [data-field="rate"]`)?.focus();
+    } else {
+      // On the bottom row — add a new row only if this row has any data
+      const seg = segments[i];
+      const isEmpty = seg.rate === '' && seg.target === '' && seg.hold === '';
+      if (!isEmpty) {
+        segments.push({ rate: '', target: '', hold: '' });
+        render();
+        requestAnimationFrame(() => {
+          const rows = document.querySelectorAll('.seg-row');
+          rows[rows.length - 1]?.querySelector('input')?.focus();
+        });
+      }
+    }
     return;
   }
 
