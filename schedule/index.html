@@ -79,7 +79,6 @@
     box-shadow: 0 0 0 3px var(--accent-light);
   }
 
-  /* Rate input left-aligns normally, right when AFAP */
   .seg-rate { text-align: right; }
   .seg-rate.is-afap { font-style: italic; color: var(--text-secondary); }
 
@@ -226,7 +225,7 @@
     display: none;
     position: fixed;
     inset: 0;
-    background: rgba(0, 0, 0, 0.35);
+    background: rgba(51, 42, 34, 0.45);
     align-items: flex-end;
     justify-content: center;
     z-index: 100;
@@ -314,7 +313,7 @@
       <!-- rows rendered by JS -->
     </div>
     <div class="add-row">
-      <button class="add-btn" id="add-btn">+ Add segment</button>
+      <button type="button" class="add-btn" id="add-btn">+ Add segment</button>
     </div>
   </div>
 
@@ -333,12 +332,12 @@
 </div>
 
 <!-- Notes modal -->
-<div class="modal-overlay" id="notes-modal">
+<div class="modal-overlay" id="notes-modal" role="dialog" aria-modal="true" aria-labelledby="modal-title">
   <div class="modal-sheet" id="notes-sheet">
     <p class="modal-seg-title" id="modal-title"></p>
     <p class="modal-seg-summary" id="modal-summary"></p>
     <textarea id="modal-textarea" placeholder="Notes…"></textarea>
-    <button class="modal-done" id="modal-done">Done</button>
+    <button type="button" class="modal-done" id="modal-done">Done</button>
   </div>
 </div>
 
