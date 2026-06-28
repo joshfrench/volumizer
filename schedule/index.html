@@ -40,6 +40,7 @@
   .col-header .h-target,
   .col-header .h-hold,
   .col-header .h-time { text-align: right; }
+  .col-header .h-unit { text-transform: none; letter-spacing: 0; opacity: 0.7; }
 
   /* ── Segment rows ──────────────────────────── */
   .seg-row {
@@ -363,10 +364,10 @@
   <div class="table-card">
     <div class="col-header">
       <span>#</span>
-      <span class="h-rate">Rate</span>
-      <span class="h-target">Target</span>
+      <span class="h-rate" id="h-rate">Rate</span>
+      <span class="h-target" id="h-target">Temp</span>
       <span class="h-hold">Hold</span>
-      <span class="h-time">Time</span>
+      <span class="h-time">Segment<br>Time</span>
       <span></span>
     </div>
     <div id="seg-body">
@@ -807,10 +808,16 @@ document.addEventListener('keydown', e => {
   if (e.key === 'Escape' && settingsModal.style.display === 'flex') closeSettings();
 });
 
+function updateColHeaders() {
+  document.getElementById('h-rate').innerHTML   = `Rate<br><span class="h-unit">${rateUnitLabel()}</span>`;
+  document.getElementById('h-target').innerHTML = `Temp<br><span class="h-unit">${unitLabel()}</span>`;
+}
+
 function setUnit(u) {
   if (u === tempUnit) return;
   tempUnit = u;
   saveSchedSettings();
+  updateColHeaders();
   render();
 }
 
@@ -825,6 +832,7 @@ hcToggle.addEventListener('click', () => {
 });
 
 // ── Bootstrap ─────────────────────────────────────────────────────────────
+updateColHeaders();
 render();
 document.querySelector('#seg-body .seg-row input')?.focus();
 </script>
