@@ -23,7 +23,7 @@
 
   .col-header {
     display: grid;
-    grid-template-columns: 16px 58px 68px 42px 54px 1fr 22px;
+    grid-template-columns: 16px 1fr 1fr 1fr 54px 58px 22px;
     gap: 5px;
     padding: 7px 10px;
     background: var(--bg);
@@ -43,7 +43,7 @@
   /* ── Segment rows ──────────────────────────── */
   .seg-row {
     display: grid;
-    grid-template-columns: 16px 58px 68px 42px 54px 1fr 22px;
+    grid-template-columns: 16px 1fr 1fr 1fr 54px 58px 22px;
     gap: 5px;
     padding: 7px 10px;
     border-top: 0.5px solid var(--border);
@@ -56,10 +56,53 @@
     color: var(--text-secondary);
   }
 
+  /* ── Inline notes expansion ─────────────────── */
+  .seg-notes {
+    padding: 6px 10px 10px;
+    border-top: 0.5px solid var(--border);
+    background: var(--bg);
+  }
+
+  .seg-notes textarea {
+    width: 100%;
+    font-size: 14px;
+    font-family: inherit;
+    padding: 8px 10px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: var(--card);
+    color: var(--text);
+    resize: none;
+    height: 72px;
+    -webkit-appearance: none;
+    box-sizing: border-box;
+  }
+
+  .seg-notes textarea:focus {
+    outline: none;
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px var(--accent-light);
+  }
+
+  .seg-notes-done {
+    display: block;
+    width: 100%;
+    margin-top: 6px;
+    padding: 7px;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--accent);
+    background: none;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    cursor: pointer;
+    -webkit-appearance: none;
+  }
+
   /* Number inputs shared style */
   .seg-row input {
     width: 100%;
-    font-size: 15px;
+    font-size: 14px;
     padding: 8px 6px;
     border: 1px solid var(--border);
     border-radius: 6px;
@@ -82,25 +125,9 @@
   .seg-rate { text-align: right; }
   .seg-rate.is-afap { font-style: italic; color: var(--text-secondary); }
 
-  /* Target and hold: number inside a wrapper with unit suffix */
-  .field-wrap {
-    display: flex;
-    align-items: center;
-    gap: 2px;
-  }
-
-  .field-wrap input { flex: 1; min-width: 0; }
-
-  .unit {
-    font-size: 10px;
-    color: var(--text-secondary);
-    white-space: nowrap;
-    flex-shrink: 0;
-  }
-
   /* Calculated time cell */
   .seg-time {
-    font-size: 13px;
+    font-size: 12px;
     color: var(--text);
     text-align: right;
     white-space: nowrap;
@@ -114,27 +141,25 @@
     text-align: right;
   }
 
-  /* Notes chip */
-  .note-chip {
+  /* Note disclosure button */
+  .note-btn {
+    width: 100%;
     font-size: 11px;
+    font-family: inherit;
+    color: var(--text-secondary);
+    background: none;
+    border: 1px solid var(--border);
     border-radius: 6px;
-    padding: 3px 6px;
+    padding: 8px 5px;
     cursor: pointer;
-    overflow: hidden;
-    text-overflow: ellipsis;
     white-space: nowrap;
+    text-align: center;
     -webkit-tap-highlight-color: transparent;
   }
 
-  .note-chip.filled {
-    background: var(--bg);
-    border: 1px solid var(--border);
-    color: var(--text-secondary);
-  }
-
-  .note-chip.empty {
-    border: 1px dashed var(--border);
-    color: var(--border);
+  .note-btn.has-notes {
+    color: var(--text);
+    border-color: var(--text-secondary);
   }
 
   /* Delete button */
@@ -210,7 +235,7 @@
     margin-bottom: 8px;
   }
 
-  #graph { display: block; width: 100%; height: auto; overflow: visible; }
+  #graph { display: block; width: 100%; height: auto; overflow: hidden; }
 
   #afap-note {
     display: none;
@@ -220,76 +245,6 @@
     margin: 4px 0 0;
   }
 
-  /* ── Notes modal ────────────────────────────── */
-  .modal-overlay {
-    display: none;
-    position: fixed;
-    inset: 0;
-    background: rgba(51, 42, 34, 0.45);
-    align-items: flex-end;
-    justify-content: center;
-    z-index: 100;
-  }
-
-  .modal-overlay.open { display: flex; }
-
-  .modal-sheet {
-    background: var(--card);
-    border-radius: 16px 16px 0 0;
-    padding: 20px;
-    width: 100%;
-    max-width: 480px;
-  }
-
-  .modal-seg-title {
-    font-size: 13px;
-    font-weight: 500;
-    color: var(--text);
-    margin: 0 0 3px;
-  }
-
-  .modal-seg-summary {
-    font-size: 11px;
-    color: var(--text-secondary);
-    margin: 0 0 12px;
-  }
-
-  .modal-sheet textarea {
-    width: 100%;
-    font-size: 14px;
-    font-family: inherit;
-    padding: 10px 12px;
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    background: var(--bg);
-    color: var(--text);
-    resize: none;
-    height: 90px;
-    -webkit-appearance: none;
-    box-sizing: border-box;
-  }
-
-  .modal-sheet textarea:focus {
-    outline: none;
-    border-color: var(--accent);
-    box-shadow: 0 0 0 3px var(--accent-light);
-  }
-
-  .modal-done {
-    margin-top: 10px;
-    width: 100%;
-    padding: 14px;
-    font-size: 16px;
-    font-weight: 500;
-    color: white;
-    background: var(--accent);
-    border: none;
-    border-radius: 10px;
-    cursor: pointer;
-    -webkit-appearance: none;
-  }
-
-  .modal-done:active { opacity: 0.85; }
 </style>
 </head>
 <body>
@@ -331,16 +286,6 @@
   </div>
 </div>
 
-<!-- Notes modal -->
-<div class="modal-overlay" id="notes-modal" role="dialog" aria-modal="true" aria-labelledby="modal-title">
-  <div class="modal-sheet" id="notes-sheet">
-    <p class="modal-seg-title" id="modal-title"></p>
-    <p class="modal-seg-summary" id="modal-summary"></p>
-    <textarea id="modal-textarea" placeholder="Notes…"></textarea>
-    <button type="button" class="modal-done" id="modal-done">Done</button>
-  </div>
-</div>
-
 <script>
 // ── Constants ──────────────────────────────────────────────────────────────
 const AMBIENT_TEMP = 70;  // °F — assumed starting temperature
@@ -348,7 +293,8 @@ const AFAP_RATE    = 300; // °F/hr — fixed estimate for "as fast as possible"
 
 // ── State ──────────────────────────────────────────────────────────────────
 let segments = [{ rate: '', target: '', hold: '', notes: '' }];
-let modalIndex = -1;
+let expandedIndex    = -1;
+let lastFocusedField = null; // { index, field } — updated on every input focus
 
 // ── Helpers ────────────────────────────────────────────────────────────────
 function isAfap(val) {
@@ -401,31 +347,31 @@ function render() {
   document.getElementById('seg-body').innerHTML = segments.map((seg, i) => {
     const calc = calcs[i];
     const timeStr = calc.valid ? fmtTime(calc.stageTime) : '—';
-    const estSpan = calc.isAfap && calc.valid ? '<span class="est">est.</span>' : '';
+    const estSpan = calc.isAfap && calc.valid ? ' <span class="est">est.</span>' : '';
     const rateClass = isAfap(seg.rate) ? ' is-afap' : '';
-    const noteChip = seg.notes
-      ? `<div class="note-chip filled" data-action="note" data-index="${i}">${esc(seg.notes)}</div>`
-      : `<div class="note-chip empty"  data-action="note" data-index="${i}">+ note</div>`;
+    const isExpanded = expandedIndex === i;
+    const caret   = isExpanded ? '▲' : '▼';
+    const noteBtn = `<button type="button" class="note-btn${seg.notes ? ' has-notes' : ''}" data-action="note" data-index="${i}" tabindex="-1">Notes ${caret}</button>`;
+    const notesRow = isExpanded ? `
+      <div class="seg-notes" data-index="${i}">
+        <textarea data-action="notes-input" data-index="${i}" placeholder="Notes…">${esc(seg.notes)}</textarea>
+        <button type="button" class="seg-notes-done" data-action="collapse" data-index="${i}">Done</button>
+      </div>` : '';
 
     return `
       <div class="seg-row" data-index="${i}">
         <span class="seg-num">${i + 1}</span>
         <input class="seg-rate${rateClass}" type="text" inputmode="decimal"
                value="${esc(seg.rate)}" data-field="rate" placeholder="°F/hr">
-        <div class="field-wrap">
-          <input type="number" inputmode="decimal"
-                 value="${esc(seg.target)}" data-field="target" placeholder="0">
-          <span class="unit">°F</span>
-        </div>
-        <div class="field-wrap">
-          <input type="number" inputmode="decimal"
-                 value="${esc(seg.hold)}" data-field="hold" placeholder="0">
-          <span class="unit">h</span>
-        </div>
+        <input type="number" inputmode="decimal"
+               value="${esc(seg.target)}" data-field="target" placeholder="°F">
+        <input type="number" inputmode="decimal"
+               value="${esc(seg.hold)}" data-field="hold" placeholder="h">
         <div class="seg-time">${timeStr}${estSpan}</div>
-        ${noteChip}
-        <button type="button" class="del-btn" data-action="delete" data-index="${i}" aria-label="Remove segment ${i + 1}">×</button>
-      </div>`;
+        ${noteBtn}
+        <button type="button" class="del-btn" data-action="delete" data-index="${i}" aria-label="Remove segment ${i + 1}" tabindex="-1">×</button>
+      </div>
+      ${notesRow}`;
   }).join('');
 
   // Total time
@@ -445,27 +391,107 @@ function render() {
 // ── Event delegation ───────────────────────────────────────────────────────
 const segBody = document.getElementById('seg-body');
 
-// input: update state immediately; skip re-render for rate (wait for blur)
+// updateCalcs: patch time cells + total + graph without touching input DOM
+function updateCalcs() {
+  const calcs = calcSegments();
+
+  segments.forEach((_, i) => {
+    const calc    = calcs[i];
+    const timeStr = calc.valid ? fmtTime(calc.stageTime) : '—';
+    const estSpan = calc.isAfap && calc.valid ? '<span class="est">est.</span>' : '';
+    const timeEl  = document.querySelector(`.seg-row[data-index="${i}"] .seg-time`);
+    if (timeEl) timeEl.innerHTML = timeStr + estSpan;
+  });
+
+  const calcsValid = calcs.filter(c => c.valid);
+  const totalHours = calcsValid.reduce((s, c) => s + c.stageTime, 0);
+  const totalRow   = document.getElementById('total-row');
+  if (calcsValid.length > 0 && totalHours > 0) {
+    totalRow.style.display = 'flex';
+    document.getElementById('total-value').textContent = fmtTime(totalHours);
+  } else {
+    totalRow.style.display = 'none';
+  }
+
+  if (document.activeElement?.dataset?.field !== 'target') renderGraph(calcs);
+}
+
+// Track last focused input field so Notes collapse can restore it
+segBody.addEventListener('focus', e => {
+  const row = e.target.closest('.seg-row');
+  if (!row || !e.target.dataset.field) return;
+  lastFocusedField = { index: parseInt(row.dataset.index, 10), field: e.target.dataset.field };
+}, true /* useCapture — focus doesn't bubble */);
+
+// input: update state; patch calcs without rebuilding input rows
 segBody.addEventListener('input', e => {
+  if (e.target.dataset.action === 'notes-input') {
+    const i = parseInt(e.target.dataset.index, 10);
+    segments[i].notes = e.target.value;
+    return;
+  }
   const row = e.target.closest('.seg-row');
   if (!row) return;
   const i     = parseInt(row.dataset.index, 10);
   const field = e.target.dataset.field;
   if (!field) return;
   segments[i][field] = e.target.value;
-  if (field !== 'rate') render();
+  if (field !== 'rate') updateCalcs();
 });
 
-// blur on rate: normalize AFAP/9999, then render
+// blur on rate/target: normalize AFAP (rate), trigger graph (target) — never rebuild DOM on blur
 segBody.addEventListener('blur', e => {
+  if (e.target.dataset.field === 'target') { updateCalcs(); return; }
   if (e.target.dataset.field !== 'rate') return;
   const row = e.target.closest('.seg-row');
   if (!row) return;
-  const i   = parseInt(row.dataset.index, 10);
-  const val = e.target.value.trim().toUpperCase();
-  segments[i].rate = (val === 'AFAP' || val === '9999') ? 'AFAP' : e.target.value;
-  render();
-}, true /* useCapture so blur fires on delegated elements */);
+  const i          = parseInt(row.dataset.index, 10);
+  const val        = e.target.value.trim().toUpperCase();
+  const normalized = (val === 'AFAP' || val === '9999') ? 'AFAP' : e.target.value;
+  segments[i].rate = normalized;
+  e.target.value   = normalized;
+  e.target.classList.toggle('is-afap', isAfap(normalized));
+  updateCalcs();
+}, true /* useCapture — blur doesn't bubble */);
+
+segBody.addEventListener('keydown', e => {
+  // Enter on hold: add segment and focus new row's rate field
+  if (e.key === 'Enter' && e.target.dataset.field === 'hold') {
+    e.preventDefault();
+    segments.push({ rate: '', target: '', hold: '', notes: '' });
+    render();
+    const rows = document.querySelectorAll('.seg-row');
+    rows[rows.length - 1]?.querySelector('input')?.focus();
+    return;
+  }
+
+  // Backspace/Delete in an empty field: navigate to previous field
+  if (e.key === 'Backspace' || e.key === 'Delete') {
+    const field = e.target.dataset.field;
+    if (!field || e.target.value !== '') return;
+    const row = e.target.closest('.seg-row');
+    if (!row) return;
+    const i = parseInt(row.dataset.index, 10);
+    e.preventDefault();
+
+    if (field === 'target') {
+      document.querySelector(`.seg-row[data-index="${i}"] [data-field="rate"]`)?.focus();
+    } else if (field === 'hold') {
+      document.querySelector(`.seg-row[data-index="${i}"] [data-field="target"]`)?.focus();
+    } else if (field === 'rate') {
+      if (i === 0) return;
+      const seg = segments[i];
+      const deleteRow = seg.rate === '' && seg.target === '' && seg.hold === '' && segments.length > 1;
+      if (deleteRow) {
+        if (expandedIndex === i) expandedIndex = -1;
+        else if (expandedIndex > i) expandedIndex--;
+        segments.splice(i, 1);
+        render();
+      }
+      document.querySelector(`.seg-row[data-index="${i - 1}"] [data-field="hold"]`)?.focus();
+    }
+  }
+});
 
 // click: delete or open notes
 segBody.addEventListener('click', e => {
@@ -476,13 +502,23 @@ segBody.addEventListener('click', e => {
   if (isNaN(index)) return;
 
   if (action === 'delete') {
+    if (expandedIndex === index) expandedIndex = -1;
+    else if (expandedIndex > index) expandedIndex--;
     segments.splice(index, 1);
     if (segments.length === 0) {
       segments.push({ rate: '', target: '', hold: '', notes: '' });
     }
     render();
   } else if (action === 'note') {
-    openNotesModal(index);
+    if (expandedIndex === index) {
+      collapseNotes();
+    } else {
+      expandedIndex = index;
+      render();
+      document.querySelector(`.seg-notes[data-index="${index}"] textarea`)?.focus();
+    }
+  } else if (action === 'collapse') {
+    collapseNotes();
   }
 });
 
@@ -492,46 +528,22 @@ document.getElementById('add-btn').addEventListener('click', () => {
   render();
   // scroll new row into view
   const rows = document.querySelectorAll('.seg-row');
-  rows[rows.length - 1]?.scrollIntoView({ block: 'nearest' });
+  const lastRow = rows[rows.length - 1];
+  lastRow?.scrollIntoView({ block: 'nearest' });
+  lastRow?.querySelector('[data-field="rate"]')?.focus();
 });
 
-// ── Notes modal ────────────────────────────────────────────────────────────
-function openNotesModal(index) {
-  modalIndex = index;
-  const seg = segments[index];
-
-  document.getElementById('modal-title').textContent = `Segment ${index + 1} — notes`;
-
-  const rateStr   = isAfap(seg.rate) ? 'AFAP' : (seg.rate ? `${seg.rate}°F/hr` : '—');
-  const targetStr = seg.target ? `${seg.target}°F` : '—';
-  const holdStr   = parseFloat(seg.hold) > 0 ? `hold ${seg.hold}h` : 'no hold';
-  document.getElementById('modal-summary').textContent = `${rateStr} → ${targetStr} · ${holdStr}`;
-
-  const ta = document.getElementById('modal-textarea');
-  ta.value = seg.notes;
-  document.getElementById('notes-modal').classList.add('open');
-  ta.focus();
-}
-
-function closeNotesModal() {
-  if (modalIndex >= 0 && modalIndex < segments.length) {
-    segments[modalIndex].notes = document.getElementById('modal-textarea').value;
-    render();
+function collapseNotes() {
+  expandedIndex = -1;
+  render();
+  if (lastFocusedField) {
+    const { index, field } = lastFocusedField;
+    document.querySelector(`.seg-row[data-index="${index}"] [data-field="${field}"]`)?.focus();
   }
-  document.getElementById('notes-modal').classList.remove('open');
-  modalIndex = -1;
 }
-
-document.getElementById('modal-done').addEventListener('click', closeNotesModal);
-
-// close when tapping the overlay backdrop (not the sheet itself)
-const notesModalEl = document.getElementById('notes-modal');
-notesModalEl.addEventListener('click', e => {
-  if (e.target === notesModalEl) closeNotesModal();
-});
 
 document.addEventListener('keydown', e => {
-  if (e.key === 'Escape' && modalIndex >= 0) closeNotesModal();
+  if (e.key === 'Escape' && expandedIndex >= 0) collapseNotes();
 });
 
 // ── Graph ──────────────────────────────────────────────────────────────────
@@ -571,7 +583,7 @@ function renderGraph(calcs) {
     }
   });
 
-  const yMax = peakTemp > 0 ? peakTemp * 1.12 : 200;
+  const yMax = Math.max(peakTemp, AMBIENT_TEMP) * 1.12;
   const yMin = 0;
 
   const tx = t => PAD_L + (t / totalTime) * plotW;
@@ -646,6 +658,7 @@ function renderGraph(calcs) {
 
 // ── Bootstrap ─────────────────────────────────────────────────────────────
 render();
+document.querySelector('#seg-body .seg-row input')?.focus();
 </script>
 </body>
 </html>
