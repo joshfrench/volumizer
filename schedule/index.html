@@ -591,6 +591,11 @@ segBody.addEventListener('input', e => {
     updateCalcs();
     return;
   }
+  if (field === 'rate') {
+    const n = parseFloat(e.target.value);
+    if (!isNaN(n) && n > 9999) e.target.value = '9999';
+    e.target.classList.toggle('is-afap', isAfap(e.target.value));
+  }
   segments[i][field] = e.target.value;
   if (field !== 'rate') updateCalcs();
 });
