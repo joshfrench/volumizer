@@ -25,6 +25,7 @@
 }
 </script>
 <link rel="stylesheet" href="../theme.css">
+<script src="../theme.js"></script>
 <style>
   .progress {
     display: flex;
@@ -1381,9 +1382,6 @@
   }
   const settings = Object.assign({ units: 'metric', highContrast: false, precisionMode: false }, loadAppSettings());
 
-  function applyHighContrast() {
-    document.documentElement.classList.toggle('high-contrast', settings.highContrast);
-  }
   function volUnit() {
     return settings.units === 'imperial' ? 'in³' : 'cm³';
   }
@@ -2246,10 +2244,10 @@
     hcToggle.classList.toggle('on', settings.highContrast);
     hcToggle.setAttribute('aria-pressed', String(settings.highContrast));
     saveAppSettings();
-    applyHighContrast();
+    Theme.apply();
   });
 
-  applyHighContrast();
+  Theme.apply();
   updateUnitLabels();
   showStep(1);
 })();
