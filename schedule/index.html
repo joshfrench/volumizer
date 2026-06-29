@@ -962,6 +962,13 @@ async function generatePDF() {
   }
 }
 
+function buildQRDataUrl() {
+  const url = 'https://starterbubble.com/schedule/?s=' + scheduleToParam();
+  const canvas = document.createElement('canvas');
+  new window.QRious({ element: canvas, value: url, size: 256, level: 'L' });
+  return canvas.toDataURL('image/png');
+}
+
 function buildFiringLog(jsPDF) {
   const doc = new jsPDF({ unit: 'pt', format: 'letter' });
 
@@ -1160,6 +1167,19 @@ function buildFiringLog(jsPDF) {
   // ── RESULTS & NOTES ───────────────────────────────────────────────────────
   curY = sectionHeader(curY, 'Results & Notes') + 10;
   dotGrid(LEFT, RIGHT, curY, PAGE_H - MARGIN_BOTTOM);
+
+  // ── QR code (bottom-right) ────────────────────────────────────────────────
+  const QR_SIZE  = 64;   // pt
+  const QR_LABEL = 'Scan to edit this schedule';
+  const qrX = RIGHT - QR_SIZE;              // 516
+  const qrY = PAGE_H - MARGIN_BOTTOM - QR_SIZE - 10;  // 686
+
+  const qrDataUrl = buildQRDataUrl();
+  doc.addImage(qrDataUrl, 'PNG', qrX, qrY, QR_SIZE, QR_SIZE);
+
+  doc.setFont('helvetica', 'normal'); doc.setFontSize(6); ink(GREY);
+  const labelX = qrX + QR_SIZE / 2;
+  doc.text(QR_LABEL, labelX, qrY + QR_SIZE + 7, { align: 'center' });
 
   // ── Save ──────────────────────────────────────────────────────────────────
   const today = new Date().toISOString().split('T')[0];
