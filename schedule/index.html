@@ -429,6 +429,7 @@ let tempUnit = 'F';
 const SCHED_KEY = 'volumizer_schedule_settings';
 try { tempUnit = (JSON.parse(localStorage.getItem(SCHED_KEY)) || {}).tempUnit || 'F'; } catch (_e) {}
 function saveSchedSettings() { try { localStorage.setItem(SCHED_KEY, JSON.stringify({ tempUnit })); } catch (_e) {} }
+loadFromParam();
 
 // ── Helpers ────────────────────────────────────────────────────────────────
 function isAfap(val) {
@@ -477,6 +478,41 @@ function canonRate(v) {                       // typed display-unit rate → can
 }
 function unitLabel()     { return tempUnit === 'C' ? '°C'    : '°F'; }
 function rateUnitLabel() { return tempUnit === 'C' ? '°C/HR' : '°F/HR'; }
+
+// ── URL share helpers ──────────────────────────────────────────────────────
+function scheduleToParam() {
+  const meaningful = segments.filter((s, i) =>
+    i === 0 || s.rate !== '' || s.target !== ''
+  );
+  const parts = meaningful.map(s => {
+    const r = isAfap(s.rate) ? 'A' : (s.rate || 'x');
+    const t = s.target || 'x';
+    const h = s.hold ? String(Math.round(parseFloat(s.hold) * 60)) : '0';
+    return `${r},${t},${h}`;
+  });
+  return tempUnit + ':' + parts.join(':');
+}
+
+function loadFromParam() {
+  try {
+    const param = new URLSearchParams(window.location.search).get('s');
+    if (!param) return;
+    const tokens = param.split(':');
+    if (tokens.length < 2) return;
+    const unit = tokens[0] === 'C' ? 'C' : 'F';
+    const loaded = tokens.slice(1).map(tok => {
+      const [r, t, hm] = tok.split(',');
+      const rate   = r === 'A' ? 'AFAP' : (r === 'x' ? '' : r);
+      const target = t === 'x' ? '' : t;
+      const holdMins = parseInt(hm, 10);
+      const hold  = holdMins > 0 ? String(holdMins / 60) : '';
+      return { rate, target, hold };
+    });
+    if (loaded.length === 0) return;
+    tempUnit = unit;
+    segments = loaded;
+  } catch (_e) {}
+}
 
 // ── Calculations ───────────────────────────────────────────────────────────
 function calcSegments() {
@@ -896,12 +932,27 @@ function ensureJsPDF() {
   return _jspdfPromise;
 }
 
+let _qriousPromise = null;
+
+function ensureQRious() {
+  if (_qriousPromise) return _qriousPromise;
+  if (window.QRious) return (_qriousPromise = Promise.resolve());
+  _qriousPromise = new Promise((resolve, reject) => {
+    const s = document.createElement('script');
+    s.src = 'https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.2/qrious.min.js';
+    s.onload  = resolve;
+    s.onerror = () => { _qriousPromise = null; reject(new Error('offline')); };
+    document.head.appendChild(s);
+  });
+  return _qriousPromise;
+}
+
 async function generatePDF() {
   const btn = document.getElementById('pdf-btn');
   btn.disabled = true;
   btn.textContent = 'Generating…';
   try {
-    await ensureJsPDF();
+    await Promise.all([ensureJsPDF(), ensureQRious()]);
     buildFiringLog(window.jspdf.jsPDF);
   } catch (_e) {
     alert('Could not load the PDF library. Check your internet connection and try again.');
@@ -909,6 +960,13 @@ async function generatePDF() {
     btn.disabled = false;
     btn.textContent = 'Download firing log (PDF)';
   }
+}
+
+function buildQRDataUrl() {
+  const url = 'https://starterbubble.com/schedule/?s=' + scheduleToParam();
+  const canvas = document.createElement('canvas');
+  new window.QRious({ element: canvas, value: url, size: 256, level: 'L' });
+  return canvas.toDataURL('image/png');
 }
 
 function buildFiringLog(jsPDF) {
@@ -1109,6 +1167,19 @@ function buildFiringLog(jsPDF) {
   // ── RESULTS & NOTES ───────────────────────────────────────────────────────
   curY = sectionHeader(curY, 'Results & Notes') + 10;
   dotGrid(LEFT, RIGHT, curY, PAGE_H - MARGIN_BOTTOM);
+
+  // ── QR code (bottom-right) ────────────────────────────────────────────────
+  const QR_SIZE  = 64;   // pt
+  const QR_LABEL = 'Scan to edit this schedule';
+  const qrX = RIGHT - QR_SIZE;              // 516
+  const qrY = PAGE_H - MARGIN_BOTTOM - QR_SIZE - 10;  // 686
+
+  const qrDataUrl = buildQRDataUrl();
+  doc.addImage(qrDataUrl, 'PNG', qrX, qrY, QR_SIZE, QR_SIZE);
+
+  doc.setFont('helvetica', 'normal'); doc.setFontSize(6); ink(GREY);
+  const labelX = qrX + QR_SIZE / 2;
+  doc.text(QR_LABEL, labelX, qrY + QR_SIZE + 7, { align: 'center' });
 
   // ── Save ──────────────────────────────────────────────────────────────────
   const today = new Date().toISOString().split('T')[0];
