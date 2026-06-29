@@ -476,7 +476,7 @@ function canonRate(v) {                       // typed display-unit rate → can
   return String(tempUnit === 'C' ? rateCToF(n) : n);
 }
 function unitLabel()     { return tempUnit === 'C' ? '°C'    : '°F'; }
-function rateUnitLabel() { return tempUnit === 'C' ? '°C/hr' : '°F/hr'; }
+function rateUnitLabel() { return tempUnit === 'C' ? '°C/HR' : '°F/HR'; }
 
 // ── Calculations ───────────────────────────────────────────────────────────
 function calcSegments() {
@@ -955,8 +955,9 @@ function buildFiringLog(jsPDF) {
     doc.setFont('helvetica', 'bold'); doc.setFontSize(9); ink(ACCENT);
     doc.text(text.toUpperCase(), LEFT, y + 8);
     if (note) {
+      const headerWidth = doc.getTextWidth(text.toUpperCase());
       doc.setFont('helvetica', 'italic'); doc.setFontSize(7.5); ink(GREY);
-      doc.text(note, RIGHT, y + 8, { align: 'right' });
+      doc.text(note, LEFT + headerWidth + 5, y + 8);
     }
     hline(LEFT, RIGHT, y + 12, ACCENT, 1);
     return y + 12;
@@ -992,24 +993,35 @@ function buildFiringLog(jsPDF) {
   // ── PIECE & MATERIALS ─────────────────────────────────────────────────────
   curY = sectionHeader(curY, 'Piece & Materials') + 4;
   const label_w = 135, pm_row_h = 21;
-  ['Description', 'Glass used (style / COE / color)', 'Glass Dimensions', 'Mold Type & Dimensions'].forEach(label => {
+  const pmFields = [
+    { label: 'Description', lines: 1 },
+    { label: 'Glass Dimensions', lines: 1 },
+    { label: 'Glass used (style / color / batch)', lines: 2 },
+    { label: 'Mold Type & Dimensions', lines: 2 },
+  ];
+  pmFields.forEach(({ label, lines }) => {
     const baseline = curY + 14;
     doc.setFont('helvetica', 'normal'); doc.setFontSize(8.5); ink(DARK_TEXT);
     doc.text(label + ':', LEFT, baseline);
     hline(LEFT + label_w, RIGHT, baseline + 2);
-    curY += pm_row_h;
+    if (lines > 1) {
+      hline(LEFT + label_w, RIGHT, baseline + 2 + pm_row_h);
+      curY += pm_row_h * 2;
+    } else {
+      curY += pm_row_h;
+    }
   });
   curY += 5;
 
   // ── GOALS ────────────────────────────────────────────────────────────────
-  curY = sectionHeader(curY, 'Goals') + 8;
-  dotGrid(LEFT, RIGHT, curY, curY + 30);
-  curY += 35;
+  curY = sectionHeader(curY, 'Goals') + 16;
+  dotGrid(LEFT, RIGHT, curY, curY + 39);
+  curY += 44;
 
   // ── KILN PREP ─────────────────────────────────────────────────────────────
-  curY = sectionHeader(curY, 'Kiln Prep', 'shelf, release, position, etc.') + 8;
-  dotGrid(LEFT, RIGHT, curY, curY + 60);
-  curY += 65;
+  curY = sectionHeader(curY, 'Kiln Prep', 'shelf, release, position, etc.') + 16;
+  dotGrid(LEFT, RIGHT, curY, curY + 65);
+  curY += 70;
 
   // ── FIRING SCHEDULE ───────────────────────────────────────────────────────
   curY = sectionHeader(curY, 'Firing Schedule') + 4;
@@ -1017,8 +1029,8 @@ function buildFiringLog(jsPDF) {
   const col_widths = [20, 55, 55, 55, 55];
   col_widths.push(CONTENT_W - col_widths.reduce((a, b) => a + b, 0));  // 295 for Notes
   const headers = ['#', `RATE\n${rateUnitLabel()}`, `TARGET\n${unitLabel()}`, 'HOLD', 'SEGMENT\nTIME', 'NOTES'];
-  const N_DATA = 11;    // writable rows
-  const N_ROWS = 12;    // 11 data + 1 total (fits within Python sheet's 12-row table)
+  const N_DATA = 9;     // writable rows
+  const N_ROWS = 10;    // 9 data + 1 total footer
   const header_h = 20, row_h = 18;
   const table_h = header_h + N_ROWS * row_h;
   const table_top = curY;
@@ -1075,7 +1087,7 @@ function buildFiringLog(jsPDF) {
     ry += row_h;
   }
 
-  // Row 12 — TOTAL (filled background, heavier top rule)
+  // Footer row — TOTAL (filled background, heavier top rule)
   hline(LEFT, RIGHT, ry, BORDER_LIGHT, 0.6);
   fill(HEADER_FILL);
   doc.rect(LEFT, ry, CONTENT_W, row_h, 'F');
