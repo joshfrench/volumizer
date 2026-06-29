@@ -932,12 +932,27 @@ function ensureJsPDF() {
   return _jspdfPromise;
 }
 
+let _qriousPromise = null;
+
+function ensureQRious() {
+  if (_qriousPromise) return _qriousPromise;
+  if (window.QRious) return (_qriousPromise = Promise.resolve());
+  _qriousPromise = new Promise((resolve, reject) => {
+    const s = document.createElement('script');
+    s.src = 'https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.2/qrious.min.js';
+    s.onload  = resolve;
+    s.onerror = () => { _qriousPromise = null; reject(new Error('offline')); };
+    document.head.appendChild(s);
+  });
+  return _qriousPromise;
+}
+
 async function generatePDF() {
   const btn = document.getElementById('pdf-btn');
   btn.disabled = true;
   btn.textContent = 'Generating…';
   try {
-    await ensureJsPDF();
+    await Promise.all([ensureJsPDF(), ensureQRious()]);
     buildFiringLog(window.jspdf.jsPDF);
   } catch (_e) {
     alert('Could not load the PDF library. Check your internet connection and try again.');
