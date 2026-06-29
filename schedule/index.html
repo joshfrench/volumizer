@@ -429,6 +429,7 @@ let tempUnit = 'F';
 const SCHED_KEY = 'volumizer_schedule_settings';
 try { tempUnit = (JSON.parse(localStorage.getItem(SCHED_KEY)) || {}).tempUnit || 'F'; } catch (_e) {}
 function saveSchedSettings() { try { localStorage.setItem(SCHED_KEY, JSON.stringify({ tempUnit })); } catch (_e) {} }
+loadFromParam();
 
 // ── Helpers ────────────────────────────────────────────────────────────────
 function isAfap(val) {
@@ -477,6 +478,41 @@ function canonRate(v) {                       // typed display-unit rate → can
 }
 function unitLabel()     { return tempUnit === 'C' ? '°C'    : '°F'; }
 function rateUnitLabel() { return tempUnit === 'C' ? '°C/HR' : '°F/HR'; }
+
+// ── URL share helpers ──────────────────────────────────────────────────────
+function scheduleToParam() {
+  const meaningful = segments.filter((s, i) =>
+    i === 0 || s.rate !== '' || s.target !== ''
+  );
+  const parts = meaningful.map(s => {
+    const r = isAfap(s.rate) ? 'A' : (s.rate || 'x');
+    const t = s.target || 'x';
+    const h = s.hold ? String(Math.round(parseFloat(s.hold) * 60)) : '0';
+    return `${r},${t},${h}`;
+  });
+  return tempUnit + ':' + parts.join(':');
+}
+
+function loadFromParam() {
+  try {
+    const param = new URLSearchParams(window.location.search).get('s');
+    if (!param) return;
+    const tokens = param.split(':');
+    if (tokens.length < 2) return;
+    const unit = tokens[0] === 'C' ? 'C' : 'F';
+    const loaded = tokens.slice(1).map(tok => {
+      const [r, t, hm] = tok.split(',');
+      const rate   = r === 'A' ? 'AFAP' : (r === 'x' ? '' : r);
+      const target = t === 'x' ? '' : t;
+      const holdMins = parseInt(hm, 10);
+      const hold  = holdMins > 0 ? String(holdMins / 60) : '';
+      return { rate, target, hold };
+    });
+    if (loaded.length === 0) return;
+    tempUnit = unit;
+    segments = loaded;
+  } catch (_e) {}
+}
 
 // ── Calculations ───────────────────────────────────────────────────────────
 function calcSegments() {
