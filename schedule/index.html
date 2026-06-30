@@ -1003,11 +1003,13 @@ function buildFiringLog(jsPDF) {
   function box(x, y, w, h, color = BORDER_LIGHT, lw = 0.6) {
     stroke(color, lw); doc.rect(x, y, w, h, 'S');
   }
-  function dotGrid(x1, x2, yTop, yBottom, spacing = 13) {
+  function dotGrid(x1, x2, yTop, yBottom, spacing = 13, exclude = null) {
     fill(DOT);
     for (let y = yTop; y < yBottom; y += spacing)
-      for (let x = x1; x <= x2; x += spacing)
+      for (let x = x1; x <= x2; x += spacing) {
+        if (exclude && x >= exclude.x1 && x <= exclude.x2 && y >= exclude.y1 && y <= exclude.y2) continue;
         doc.circle(x, y, 0.55, 'F');
+      }
   }
   function sectionHeader(y, text, note = null) {
     doc.setFont('helvetica', 'bold'); doc.setFontSize(9); ink(ACCENT);
@@ -1165,14 +1167,17 @@ function buildFiringLog(jsPDF) {
   curY = table_top + table_h + 10;
 
   // ── RESULTS & NOTES ───────────────────────────────────────────────────────
-  curY = sectionHeader(curY, 'Results & Notes') + 10;
-  dotGrid(LEFT, RIGHT, curY, PAGE_H - MARGIN_BOTTOM);
-
-  // ── QR code (bottom-right) ────────────────────────────────────────────────
   const QR_SIZE  = 64;   // pt
   const QR_LABEL = 'Scan to edit this schedule';
   const qrX = RIGHT - QR_SIZE;              // 516
   const qrY = PAGE_H - MARGIN_BOTTOM - QR_SIZE - 10;  // 686
+  const QR_PAD = 4;
+  const qrExclude = { x1: qrX - QR_PAD, x2: qrX + QR_SIZE + QR_PAD, y1: qrY - QR_PAD, y2: qrY + QR_SIZE + 14 };
+
+  curY = sectionHeader(curY, 'Results & Notes') + 16;
+  dotGrid(LEFT, RIGHT, curY, PAGE_H - MARGIN_BOTTOM, 13, qrExclude);
+
+  // ── QR code (bottom-right) ────────────────────────────────────────────────
 
   const qrDataUrl = buildQRDataUrl();
   doc.addImage(qrDataUrl, 'PNG', qrX, qrY, QR_SIZE, QR_SIZE);
